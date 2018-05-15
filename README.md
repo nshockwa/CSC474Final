@@ -8,7 +8,7 @@ Dreams-VR
 
 ## GIT commands
 ### From the beginning
-- git clone https://github.com/zackragozzino/Dreams-VR.git
+- git clone https://github.com/nshockwa/CSC474Final.git
   - (by default, you will be on the master branch)
 - git branch 
   - (this should show you all your branches and which branch you are on)
@@ -21,7 +21,7 @@ Dreams-VR
 - git branch
   - (view all branches)
 - git checkout YOUR_BRANCH
-- git pull origin develop (OPTIONAL) 
+- git pull origin master (OPTIONAL) 
   - this will get all the most recent changes from everybody else
 - MAKE CHANGES // DO YOUR DEVELOPER THANG
 - git add .
