@@ -23,6 +23,9 @@
 using namespace std;
 using namespace glm;
 
+int renderstate = 1;
+int realspeed = 0;
+
 double get_last_elapsed_time() {
 	static double lasttime = glfwGetTime();
 	double actualtime = glfwGetTime();
@@ -48,8 +51,7 @@ public:
 
     GLuint VertexArrayID;
     GLuint MeshPosID, MeshTexID, IndexBufferIDBox;
-    GLuint Texture,AudioTex, AudioTexBuf;
-    GLuint Texture2,HeightTex;
+    GLuint TextureID, Texture2ID, HeightTexID, AudioTex, AudioTexBuf;
 
     Application() {
         camera = new Camera();
@@ -72,6 +74,7 @@ public:
         if (key == GLFW_KEY_L && action != GLFW_REPEAT) camera->rotVel.y = (action == GLFW_PRESS) * -0.02f;
         if (key == GLFW_KEY_U && action != GLFW_REPEAT) camera->rotVel.z = (action == GLFW_PRESS) * 0.02f;
         if (key == GLFW_KEY_O && action != GLFW_REPEAT) camera->rotVel.z = (action == GLFW_PRESS) * -0.02f;
+       
         // Polygon mode (wireframe vs solid)
         if (key == GLFW_KEY_P && action == GLFW_PRESS) {
             wireframeEnabled = !wireframeEnabled;
@@ -190,9 +193,9 @@ public:
         string str = resourceDirectory + "/sky.jpg";
         strcpy(filepath, str.c_str());
         unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
-        glGenTextures(1, &Texture);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, Texture);
+        glGenTextures(1, &TextureID);
+        glActiveTexture(GL_TEXTURE0);	// 1st texture unit - must set active unit to avoid overwriting textures
+        glBindTexture(GL_TEXTURE_2D, TextureID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -203,9 +206,9 @@ public:
         str = resourceDirectory + "/sky1.jpg";
         strcpy(filepath, str.c_str());
         data = stbi_load(filepath, &width, &height, &channels, 4);
-        glGenTextures(1, &Texture2);
+        glGenTextures(1, &Texture2ID);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, Texture2);
+        glBindTexture(GL_TEXTURE_2D, Texture2ID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -217,9 +220,9 @@ public:
         str = resourceDirectory + "/height.jpg";
         strcpy(filepath, str.c_str());
         data = stbi_load(filepath, &width, &height, &channels, 4);
-        glGenTextures(1, &HeightTex);
+        glGenTextures(1, &HeightTexID);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, HeightTex);
+        glBindTexture(GL_TEXTURE_2D, HeightTexID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -264,12 +267,13 @@ public:
 
 
 	void initGeom(const std::string& resourceDirectory) {
+		init_terrain_mesh();
+
         shape = make_shared<Shape>();
         shape->loadMesh(resourceDirectory + "/sphere.obj");
         shape->resize();
         shape->init();
 
-        init_terrain_mesh();
         init_terrain_tex(resourceDirectory);
 
 	}
@@ -342,10 +346,36 @@ public:
 
         skyprog->bind();
         skyprog->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-        shape->draw(skyprog,false);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, TextureID);
+		glDisable(GL_DEPTH_TEST);
+        shape->draw(prog,false);
+		glEnable(GL_DEPTH_TEST);
         skyprog->unbind();
 
-		//cout << camera->pos.x << " " << camera->pos.y << " " << camera->pos.z << " " << endl;
+        /************* draw terrain ******************/
+        glm::mat4 TransY = glm::translate(glm::mat4(1.0f), glm::vec3(-50.0f, -9.0f, -50));
+        M = TransY;
+
+        vec3 offset = camera->pos;
+			offset.y = 0; offset.x = (int)offset.x;	offset.z = (int)offset.z;
+        vec3 bg = vec3(254. / 255., 225. / 255., 168. / 255.);
+        if (renderstate == 2)
+            bg = vec3(49. / 255., 88. / 255., 114. / 255.);
+        
+        heightshader->bind();
+        heightshader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+        glUniform3fv(heightshader->getUniform("camoff"), 1, &offset[0]);
+        glUniform3fv(heightshader->getUniform("campos"), 1, &camera->pos[0]);
+        glUniform3fv(heightshader->getUniform("bgcolor"), 1, &bg[0]);
+        glUniform1i(heightshader->getUniform("renderstate"), renderstate);
+        glBindVertexArray(VertexArrayID);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, HeightTexID);
+        glDrawArrays(GL_TRIANGLES, 0, MESHSIZE*MESHSIZE * 6);           
+        heightshader->unbind(); 
+		
+		cout << camera->pos.x << " " << camera->pos.y << " " << camera->pos.z << " " << endl;
 	}
 };
 
