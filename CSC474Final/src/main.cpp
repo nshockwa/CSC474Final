@@ -2,12 +2,14 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
+#include <thread>
 
 // Third party libraries
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glad/glad.h>
-#include <thread>
+#include <math.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -25,6 +27,7 @@
 using namespace std;
 using namespace glm;
 
+ofstream file;
 int renderstate = 1;
 int realspeed = 0;
 
@@ -88,16 +91,16 @@ public:
         if (key == GLFW_KEY_L && action != GLFW_REPEAT) camera->rotVel.y = (action == GLFW_PRESS) * -0.02f;
         if (key == GLFW_KEY_U && action != GLFW_REPEAT) camera->rotVel.z = (action == GLFW_PRESS) * 0.02f;
         if (key == GLFW_KEY_O && action != GLFW_REPEAT) camera->rotVel.z = (action == GLFW_PRESS) * -0.02f;
-		/*if (key == GLFW_KEY_ENTER && action == GLFW_PRESS){
+		if (key == GLFW_KEY_ENTER && action == GLFW_PRESS){
 			vec3 dir,pos,up;
-			mycam.get_dirpos(up, dir, pos);
+			camera->getUpRotPos(up, dir, pos);
 			cout << "point position:" << pos.x << "," << pos.y<< "," << pos.z << endl;
 			cout << "Zbase:" << dir.x << "," << dir.y << "," << dir.z << endl;
 			cout << "Ybase:" << up.x << "," << up.y << "," << up.z << endl;
 		}		
 		if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS) {
 			vec3 dir, pos, up;
-			mycam.get_dirpos(up, dir, pos);
+			camera->getUpRotPos(up, dir, pos);
 			cout << endl;
 			back_count++;
 			cout << "backspace count: " << back_count << endl;
@@ -110,7 +113,7 @@ public:
 			file << "{" << dir.x << "," << dir.y << "," << dir.z << "}," << endl;
 			file << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
 			file << endl;
-		}*/
+		}
 
        
         // Polygon mode (wireframe vs solid)
@@ -1482,7 +1485,7 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, TextureID);
 		glDisable(GL_DEPTH_TEST);
-        shape->draw(prog,false);
+        shape->draw(skyprog,false);
 		glEnable(GL_DEPTH_TEST);
         skyprog->unbind();
 
@@ -1510,6 +1513,80 @@ public:
 		
 		//cout << camera->pos.x << " " << camera->pos.y << " " << camera->pos.z << " " << endl;
 	
+		// draw control points
+		prog->bind();
+		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
+		glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		int activate_red = 0;
+		float size = 0.3, red = 0.0, green = 0.0;
+		for (int i = 0; i < path1_controlpts.size(); i++) {
+			S = scale(mat4(1.0), vec3(size));
+			mat4 transCP = translate(mat4(1.0), path1_controlpts[i][0]);
+			M = transCP * S;
+			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+			glUniform1f(prog->getUniform("red"), red);
+			glUniform1f(prog->getUniform("green"), green);
+			shape->draw(prog, false);
+
+			if (activate_red) {
+				red += 0.2;
+			} else{
+				green += 0.2;
+			}
+			if (red >= 1.0 || green >= 1.0) {
+				activate_red = !activate_red;
+				red = 0.0; green = 0.0;
+			} 
+		}
+
+		activate_red = 0;
+		size = 0.3, red = 0.0, green = 0.0;
+		for (int i = 0; i < path2_controlpts.size(); i++) {
+			S = scale(mat4(1.0), vec3(size));
+			mat4 transCP = translate(mat4(1.0), path2_controlpts[i][0]);
+			M = transCP * S;
+			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+			glUniform1f(prog->getUniform("red"), red);
+			glUniform1f(prog->getUniform("green"), green);
+			shape->draw(prog, false);
+
+			if (activate_red) {
+				red += 0.2;
+			}
+			else {
+				green += 0.2;
+			}
+			if (red >= 1.0 || green >= 1.0) {
+				activate_red = !activate_red;
+				red = 0.0; green = 0.0;
+			}
+		}
+
+		activate_red = 0;
+		size = 0.1, red = 0.0, green = 0.0;
+		for (int i = 0; i < campath_controlpts.size(); i++) {
+			mat4 transCP = translate(mat4(1.0), (campath_controlpts[i][0]*-1.0f));
+			M = transCP * S;
+			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+			glUniform1f(prog->getUniform("red"), red);
+			glUniform1f(prog->getUniform("green"), green);
+			shape->draw(prog, false);
+
+			if (activate_red) {
+				red += 0.2;
+			}
+			else {
+				green += 0.2;
+			}
+			if (red >= 1.0 || green >= 1.0) {
+				activate_red = !activate_red;
+				red = 0.0; green = 0.0;
+			}
+		}	
+
 		// Draw the plane -------------------------------------------------------------------
 		pplane->bind();
 
@@ -1539,14 +1616,31 @@ public:
 		plane->draw(pplane, false);
 
 		pplane->unbind();
+
+		// Draw the line path --------------------------------------------------------------
+		
+		glm::vec3 linecolor = glm::vec3(1, 0, 0);
+		path1_render.draw(P, V, linecolor);
+
+		linecolor = glm::vec3(0, 0, 1);
+		path2_render.draw(P, V, linecolor);
+
+		linecolor = glm::vec3(0, 0, 0);
+		campath_inverse_render.draw(P, V, linecolor);
 	}
 };
 
 int main(int argc, char **argv) {
+
+	// setup resource directory
 	std::string resourceDir = "../resources";
-	if (argc >= 2) {
+	if (argc >= 2)
 		resourceDir = argv[1];
-	}
+
+	// open file to write path
+	file.open("pathinfo.txt");
+	if (!file.is_open()) 
+		cout << "warning! could not open pathinfo.txt file!" << endl;
 
 	Application *application = new Application();
 

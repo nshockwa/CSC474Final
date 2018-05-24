@@ -71,3 +71,10 @@ void Camera::lookAt(glm::vec3 pos, glm::vec3 up) {
     this->up = up;
     setRotation(createQuat(lookVector, up));
 }
+
+void Camera::getUpRotPos(glm::vec3 &up, glm::vec3 &rot, glm::vec3 &pos) {
+        up = this->up;
+        rot = this->rot;
+        pos = this->pos;
+}
+
