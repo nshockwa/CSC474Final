@@ -1,0 +1,9 @@
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/CMakeFiles/lab.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/CMakeFiles/INSTALL.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/CMakeFiles/ALL_BUILD.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/CMakeFiles/ZERO_CHECK.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/ext/glfw-3.3-prerelease/debug/CMakeFiles/uninstall.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/ext/glfw-3.3-prerelease/debug/CMakeFiles/INSTALL.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/ext/glfw-3.3-prerelease/debug/CMakeFiles/ALL_BUILD.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/ext/glfw-3.3-prerelease/debug/src/CMakeFiles/glfw.dir
+C:/Users/ckait/OneDrive/csc474/CSC474Final/CSC474Final/ext/glfw-3.3-prerelease/debug/src/CMakeFiles/INSTALL.dir
