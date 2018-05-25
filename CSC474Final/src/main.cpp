@@ -29,7 +29,7 @@ using namespace std;
 using namespace glm;
 
 ofstream ofile;
-string resourceDir = "../resources";
+string resourceDir = "../resources/";
 //ifstream ifile_1;
 int renderstate = 1;
 int realspeed = 0;
@@ -937,14 +937,13 @@ public:
 		// init line ----------------------------------------------------
 		// path1
 		path1_render.init();
-		cout << " path1: positions: " << endl;
 		for (int i = 0; i < path1_controlpts.size(); i++) {
 			path1_controlpts[i] *= -1.0f;
 			path1.push_back(path1_controlpts[i][0]);
 			//	cout << path1_controlpts[i][0].x << " " << path1_controlpts[i][0].y << " " << path1_controlpts[i][0].z << endl;
 		}
 		path1_render.re_init_line(path1);
-		cout << "path 1 has: " << path1.size() << " points" << endl;
+		cout << "path 1 has: " << path1.size() << " points\n" << endl;
 
 		cardinal_curve(cardinal, path1, FRAMES, 1.0);
 		path1_render.re_init_line(cardinal);
@@ -1273,6 +1272,15 @@ public:
 	}
 };
 
+// testing control points
+void testCPClass() {
+	ControlPoint *CP = nullptr;
+	CP = new ControlPoint();
+
+	CP->loadPoints(resourceDir + "path1.txt");
+
+}
+
 int main(int argc, char **argv) {
 
 	// setup resource directory
@@ -1280,10 +1288,11 @@ int main(int argc, char **argv) {
 		resourceDir = argv[1];
 
 	// open file to write path
-	ofile.open("pathinfo.txt");
+	ofile.open(resourceDir + "pathinfo.txt");
 	if (!ofile.is_open())
 		cout << "warning! could not open pathinfo.txt file!" << endl;
 
+	testCPClass();
 	/*
 	ifile_1.open("path1.txt");
 	if (!ifile_1.is_open()) {
