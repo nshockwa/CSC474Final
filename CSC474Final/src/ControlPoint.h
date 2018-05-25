@@ -1,30 +1,31 @@
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
-#include <fstream>
-
-#include "glm/gtc/quaternion.hpp"
-
-/***************************************/
-
 #pragma  once
 #ifndef ControlPoint_h
 #define ControlPoint_h
 
+#include <stdio.h>
+#include <glm/glm.hpp>
+#include <iostream>
+#include <fstream>
+#include <vector>
+//#include <string>
+
+
+/***************************************/
+
 class ControlPoint {
 public:
 
-	vector<mat3> points;
+	std::vector<glm::mat3> points;
 
-	ifstream file;
+	std::ifstream file;
 
 	ControlPoint() {}
 	~ControlPoint() {}
 
-	void loadPoints(string filename);
+	void loadPoints(std::string filename);
 
 
 
-}
+};
 
-#endif /* CountrolPoint>h */
+#endif /* CountrolPoint_h */
