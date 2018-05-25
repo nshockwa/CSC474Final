@@ -1,18 +1,25 @@
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <glm/glm.hpp>
+#include <string>
+
+
 #include "ControlPoint.h"
 
-void loadPoints(string filename) {
+using namespace std;
+using namespace glm;
 
-	file.open(filename)
+void ControlPoint::loadPoints(string filename) {
+
+	file.open(filename);
 	if (!file.is_open()) {
-		cout << "Warning: Could not open file - " + filename << endl;
+		cout << "Warning: Could not open file - " << filename << endl;
 	}
 
 	// read file and store points
-	&str = '\0';
-	file.getline(str, 10, ' ');
-	System.out.println("str: " + str);
-
-	stream& getline (char* s, streamsize n, char delim );
+	string str;
+	getline(file, str, ' ');
+	cout << "str to path name: " << str << endl;
 
 }

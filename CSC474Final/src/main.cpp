@@ -20,6 +20,7 @@
 #include "Shape.h"
 #include "Camera.h"
 #include "line.h"
+#include "ControlPoint.h"
 
 #define MESHSIZE 100		// terrain
 #define	FRAMES 61			// plane animation
@@ -28,9 +29,11 @@ using namespace std;
 using namespace glm;
 
 ofstream ofile;
+string resourceDir = "../resources";
 //ifstream ifile_1;
 int renderstate = 1;
 int realspeed = 0;
+
 
 double get_last_elapsed_time() {
 	static double lasttime = glfwGetTime();
