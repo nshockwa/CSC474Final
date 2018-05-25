@@ -27,7 +27,8 @@
 using namespace std;
 using namespace glm;
 
-ofstream file;
+ofstream ofile;
+//ifstream ifile_1;
 int renderstate = 1;
 int realspeed = 0;
 
@@ -60,11 +61,11 @@ public:
     GLuint TextureID, Texture2ID, HeightTexID, AudioTex, AudioTexBuf;
 
    	// paths
-	Line path1_render, path2_render, campath_render, campath_inverse_render;
-	vector<vec3> path1, path2, campath, campath_inverse, cardinal, cardinal2, camcardinal, camcardinal_inverse;
+	Line path1_render, campath_render, campath_inverse_render;
+	vector<vec3> path1, campath, campath_inverse, cardinal, camcardinal, camcardinal_inverse;
 
 	// pos, lookat, up - data
-	vector<mat3> path1_controlpts, path2_controlpts, campath_controlpts;
+	vector<mat3> path1_controlpts, campath_controlpts;
 
 	// toggle plane camera perspective
 	int cam_persp = 0;		// toggle camera perspective 
@@ -107,12 +108,12 @@ public:
 			cout << "point position:" << pos.x << "," << pos.y << "," << pos.z << endl;
 			cout << "Zbase:" << dir.x << "," << dir.y << "," << dir.z << endl;
 			cout << "Ybase:" << up.x << "," << up.y << "," << up.z << endl;
-			cout << "point saved into file!" << endl << endl;
+			cout << "point saved into ofile!" << endl << endl;
 			cout << endl;
-			file << "{{" << pos.x << "," << pos.y << "," << pos.z << "}," << endl;
-			file << "{" << dir.x << "," << dir.y << "," << dir.z << "}," << endl;
-			file << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
-			file << endl;
+			ofile << "{{" << pos.x << "," << pos.y << "," << pos.z << "}," << endl;
+			ofile << "{" << dir.x << "," << dir.y << "," << dir.z << "}," << endl;
+			ofile << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
+			ofile << endl;
 		}
 
        
@@ -627,325 +628,6 @@ public:
 			{ -0.0327602,0.998613,-0.0412141 } },
 		};
 
-		path2_controlpts = {
-			{ { 1.82649,3.27666,-0.212172 },
-		{ 0.031415,0,0.999506 },
-		{ 0.0560977,0.998424,-0.00176318 } },
-
-		{ { 1.87485,3.30744,14.726 },
-		{ 0.0380292,0.266711,0.963026 },
-		{ 0.0476834,0.962141,-0.268349 } },
-
-		{ { 4.11565,8.04396,29.2112 },
-		{ -0.014119,0.292783,0.956075 },
-		{ 0.157051,0.944951,-0.287057 } },
-
-		{ { -0.355354,7.08277,34.141 },
-		{ -0.0180775,0.135685,0.990587 },
-		{ -0.0916155,0.986356,-0.136777 } },
-
-		{ { 4.44739,5.70313,43.7132 },
-		{ 0.00354109,0.0361391,0.99934 },
-		{ 0.324278,0.945302,-0.0353339 } },
-
-		{ { 3.02077,6.37982,53.7674 },
-		{ 0.123726,-0.131629,0.983548 },
-		{ 0.624106,0.780907,0.0259996 } },
-
-		{ { -1.42162,4.89411,70.6679 },
-		{ -0.286635,-0.0174083,0.957882 },
-		{ 0.0541857,0.99794,0.0343507 } },
-
-		{ { -1.4315,4.95901,86.6657 },
-		{ 0.320546,-0.231451,0.918521 },
-		{ 0.136036,0.970885,0.197171 } },
-
-		{ { 7.48973,-4.45652,100.773 },
-		{ 0.443446,-0.624991,0.642449 },
-		{ 0.419021,0.778186,0.467813 } },
-
-		{ { 19.3149,-14.0395,117.456 },
-		{ 0.473468,-0.467701,0.74638 },
-		{ 0.308913,0.881727,0.356553 } },
-
-		{ { 25.0616,-18.9396,125.502 },
-		{ 0.399559,-0.166438,0.901472 },
-		{ 0.570076,0.815216,-0.102162 } },
-
-		{ { 28.1061,-22.6166,129.227 },
-		{ -0.511829,0.262182,0.818102 },
-		{ 0.640263,0.751355,0.159776 } },
-
-		{ { 26.2837,-21.6748,132.05 },
-		{ -0.33824,0.595826,0.728413 },
-		{ 0.89141,0.450952,0.0450585 } },
-
-		{ { 23.0744,-17.4311,136.92 },
-		{ -0.294273,0.757469,0.582789 },
-		{ 0.726904,0.573292,-0.378083 } },
-
-		{ { 15.357,-6.60714,150.127 },
-		{ -0.383441,0.614383,0.68957 },
-		{ 0.62019,0.724539,-0.300678 } },
-
-		{ { 7.52666,-9.79554,165.341 },
-		{ -0.407577,-0.595468,0.692314 },
-		{ -0.128324,0.787968,0.602195 } },
-
-		{ { 10.116,-17.5488,160.14 },
-		{ 0.191521,-0.842313,-0.503814 },
-		{ -0.557975,-0.515738,0.650137 } },
-
-		{ { 13.5415,-11.7296,152.794 },
-		{ 0.156622,0.987501,0.0176451 },
-		{ 0.618727,-0.0841764,-0.781083 } },
-
-		{ { 14.3458,-3.66684,151.541 },
-		{ -0.456073,0.344575,0.820528 },
-		{ 0.301667,0.927273,-0.221726 } },
-
-		{ { 0.560869,0.2651,174.203 },
-		{ -0.552988,0.273814,0.786912 },
-		{ 0.539427,0.837456,0.087671 } },
-
-		{ { -12.5631,-1.60511,181.997 },
-		{ -0.914272,-0.126047,0.384992 },
-		{ 0.195535,0.695012,0.691899 } },
-
-		{ { -19.6776,-2.37723,184.803 },
-		{ -0.829432,0.0631871,0.555022 },
-		{ 0.431473,0.703518,0.564707 } },
-
-		{ { -29.5593,-2.07709,191.029 },
-		{ -0.726454,0.0807801,0.68245 },
-		{ 0.348237,0.899396,0.264231 } },
-
-		{ { -37.3612,-1.18325,205.071 },
-		{ -0.0201769,0.0693872,0.997386 },
-		{ 0.36473,0.92935,-0.0572756 } },
-
-		{ { -37.2681,-1.3253,209.807 },
-		{ 0.103605,-0.0670381,0.992357 },
-		{ 0.367959,0.929523,0.0243775 } },
-
-		{ { -32.3729,-2.20571,239.614 },
-		{ -0.0125856,0.165222,0.986176 },
-		{ 0.369604,0.917174,-0.148945 } },
-
-		{ { -37.5826,0.883171,257.304 },
-		{ -0.358087,0.664517,0.655889 },
-		{ 0.318431,0.747273,-0.583254 } },
-
-		{ { -43.4782,3.59696,266.671 },
-		{ -0.344857,0.606756,0.716185 },
-		{ 0.337811,0.792093,-0.508402 } },
-
-		{ { -50.8304,5.92596,275.716 },
-		{ -0.698321,-0.174438,0.694203 },
-		{ 0.138396,-0.984454,-0.108155 } },
-
-		{ { -59.9886,6.62026,285.29 },
-		{ -0.711219,0.173305,0.681273 },
-		{ 0.0430835,0.978059,-0.203825 } },
-
-		{ { -66.6253,6.50768,291.179 },
-		{ -0.711219,0.173305,0.681273 },
-		{ 0.0430835,0.978059,-0.203825 } },
-
-		{ { -70.2361,7.65858,294.726 },
-		{ -0.548774,0.32939,0.768342 },
-		{ -0.176643,0.852659,-0.491701 } },
-
-		{ { -71.5181,8.44786,298.252 },
-		{ -0.508407,0.239462,0.827152 },
-		{ 0.34872,0.935523,-0.0564955 } },
-
-		{ { -74.0951,8.75472,301.721 },
-		{ -0.333595,-0.0109326,0.942653 },
-		{ 0.0276519,0.999389,0.0213763 } },
-
-		{ { -74.7663,8.06205,306.431 },
-		{ 0.00480748,-0.336678,0.941607 },
-		{ 0.0369728,0.941034,0.336285 } },
-
-		{ { -73.4168,5.83189,314.872 },
-		{ 0.652088,-0.268366,0.709056 },
-		{ -0.0134805,0.931002,0.364766 } },
-
-		{ { -67.69,4.24873,321.619 },
-		{ 0.290766,-0.274181,0.916668 },
-		{ 0.222474,0.951177,0.213935 } },
-
-		{ { -62.4418,0.936992,339.985 },
-		{ 0.698161,-0.251195,0.670426 },
-		{ -0.138364,0.871433,0.470595 } },
-
-		{ { -60.4435,0.799595,341.663 },
-		{ 0.9684,0.0974638,-0.22957 },
-		{ -0.0236202,0.952184,0.304611 } },
-
-		{ { -57.4967,1.39972,341.277 },
-		{ 0.760266,0.0238169,0.649175 },
-		{ -0.20542,0.956863,0.205467 } },
-
-		{ { -54.6336,0.764673,345.107 },		//should i remove this?
-		{ 0.335612,-0.148175,0.930274 },
-		{ -0.227339,0.94562,0.232636 } },
-
-		// added
-		{ { -55.3999,-0.899663,349.825 },
-		{ -0.783046,-0.373689,0.497187 },
-		{ -0.0788291,0.852565,0.516642 } },
-
-		{ { -59.4044,-1.90383,349.55 },
-		{ -0.70033,-0.0647516,0.710877 },
-		{ -0.0286444,0.997624,0.0626511 } },
-		// edded
-
-			/*
-		{ { -54.0134,-0.242825,349.307 },
-		{ -0.648816,-0.287934,0.704366 },
-		{ -0.213062,0.957362,0.195096 } },
-
-		{ { -55.5898,-1.01139,349.965 },
-		{ -0.997161,0.00599924,0.0750654 },
-		{ 0.0736507,-0.130084,0.988764 } },
-
-		{ { -56.8863,-1.34994,349.907 },
-		{ -0.981234,-0.185034,0.0542493 },
-		{ 0.167555,-0.957443,-0.235008 } },
-		*/
-
-		{ { -60.194,-1.88861,351.667 },
-		{ -0.389101,0.0797035,0.917741 },
-		{ -0.825303,0.412419,-0.385727 } },
-
-		{ { -54.4166,-0.55852,366.94 },
-		{ 0.669416,0.0797035,0.7386 },
-		{ -0.69671,0.412419,0.586945 } },
-
-		{ { -41.5309,-2.37025,372.839 },
-		{ 0.917292,-0.313595,0.245425 },
-		{ -0.10462,0.404881,0.908365 } },
-
-		{ { -34.0259,-5.11434,375.709 },
-		{ 0.817839,-0.448101,0.361033 },
-		{ 0.240073,0.835879,0.493631 } },
-
-		{ { -21.5611,-12.3941,382.102 },
-		{ 0.891349,-0.430728,0.141317 },
-		{ 0.307434,0.803472,0.50982 } },
-
-		{ { -7.82374,-17.9116,384.356 },
-		{ 0.92895,-0.297385,-0.220485 },
-		{ 0.360574,0.861775,0.356834 } },
-
-		{ { -3.25514,-19.1578,383.528 },
-		{ 0.931184,-0.213103,-0.295776 },
-		{ 0.311602,0.886386,0.342379 } },
-
-		{ { 0.879317,-20.0952,382.581 },
-		{ 0.598844,-0.370005,-0.71027 },
-		{ 0.683836,0.697847,0.213024 } },
-
-		{ { 7.90849,-25.5914,373.069 },
-		{ 0.781641,0.244608,-0.573763 },
-		{ 0.473227,0.366676,0.801003 } },
-
-		{ { 21.483,-19.6081,364.393 },
-		{ 0.478678,0.348192,-0.805996 },
-		{ 0.261297,0.819909,0.509385 } },
-
-		{ { 23.6129,-18.5942,359.256 },
-		{ 0.338385,0.246779,-0.908073 },
-		{ 0.363312,0.855914,0.367989 } },
-
-		{ { 26.3904,-15.5939,348.696 },
-		{ 0.196219,0.275862,-0.940956 },
-		{ 0.0376414,0.956784,0.288352 } },
-
-		{ { 29.8809,-11.8298,339.329 },
-		{ 0.758683,0.427113,-0.491909 },
-		{ -0.422457,0.897358,0.12759 } },
-
-		{ { 42.2401,-7.32628,336.778 },
-		{ 0.924741,0.292151,0.24393 },
-		{ -0.286687,0.95624,-0.0584376 } },
-
-		{ { 67.163,-5.1023,343.114 },
-		{ 0.665135,0,0.746723 },
-		{ 0.421596,0.825369,-0.375531 } },
-
-		{ { 74.0177,-4.90311,351.787 },
-		{ 0.800666,0,0.599111 },
-		{ 0.119082,0.980047,-0.159143 } },
-
-
-		{ { 83.4473,-4.32417,360.574 },
-		{ 0.711497,-0.0317437,0.701972 },
-		{ 0.371484,0.864959,-0.337411 } },
-
-		{ { 91.6777,-3.63843,373.04 },
-		{ 0.0933884,-0.0298898,0.995181 },
-		{ 0.579472,0.814443,-0.0299166 } },
-
-		{ { 90.9761,-2.21071,384.198 },
-		{ -0.356679,-0.0351374,0.933566 },
-		{ 0.255804,0.957429,0.133768 } },
-
-		{ { 83.6276,0.241059,401.029 },
-		{ -0.445432,0.131156,0.885657 },
-		{ 0.314617,0.949054,0.0176885 } },
-
-		{ { 74.7232,2.9105,421.272 },
-		{ -0.0509979,0.0638337,0.996657 },
-		{ 0.126579,0.99032,-0.0569509 } },
-
-		{ { 74.7179,3.24126,427.937 },
-		{ 0.0931514,-0.042839,0.99473 },
-		{ 0.126791,0.99145,0.0308244 } },
-
-		{ { 75.158,2.9961,434.216 },
-		{ -0.0845227,-0.042839,0.9955 },
-		{ 0.119326,0.99145,0.0527961 } },
-
-		{ { 74.4177,2.62545,442.828 },
-		{ -0.150046,-0.0416674,0.987801 },
-		{ 0.25261,0.964334,0.0790487 } },
-
-		{ { 71.1701,2.50347,450.432 },
-		{ -0.139368,-0.0431653,0.989299 },
-		{ 0.00547776,0.999001,0.0443602 } },
-
-		{ { 72.4949,5.6231,470.04 },
-		{ -0.14556,-0.0426367,0.98843 },
-		{ 0.148778,0.986767,0.0644744 } },
-
-		{ { 70.2339,3.97367,484.269 },
-		{ -0.17228,-0.238353,0.955776 },
-		{ 0.116799,0.958496,0.260085 } },
-
-		{ { 63.3854,-5.50151,522.263 },
-		{ -0.17228,-0.238353,0.955776 },
-		{ 0.116799,0.958496,0.260085 } },
-
-		{ { 59.4446,-9.75196,542.772 },
-		{ -0.290295,0.196452,0.936555 },
-		{ -0.174566,0.951407,-0.253676 } },
-
-		{ { 59.3182,-5.20403,566.281 },
-		{ 0.0202418,-0.104341,0.994336 },
-		{ -0.0229338,0.994229,0.104797 } },
-
-		{ { 59.7284,-7.31867,586.433 },
-		{ 0.0202418,-0.104341,0.994336 },
-		{ -0.0229338,0.994229,0.104797 } },
-
-		{ { 60.3455,-10.4998,616.747 },
-		{ 0.0202418,-0.104341,0.994336 },
-		{ -0.0229338,0.994229,0.104797 } },
-			};
-
 		campath_controlpts = {
 			{ { 0.627947,3.04489,-1.76117 },
 			{ 0.0199478,0,0.999801 },
@@ -1264,20 +946,6 @@ public:
 		cardinal_curve(cardinal, path1, FRAMES, 1.0);
 		path1_render.re_init_line(cardinal);
 
-		// path2
-		path2_render.init();
-		cout << " path2: positions: " << endl;
-		for (int i = 0; i < path2_controlpts.size(); i++) {
-			path2_controlpts[i] *= -1.0f;
-			path2.push_back(path2_controlpts[i][0]);
-			//cout << path2_controlpts[i][0].x << " " << path2_controlpts[i][0].y << " " << path2_controlpts[i][0].z << endl;
-		}
-		path2_render.re_init_line(path2);
-		cout << "path 2 has: " << path2.size() << " points" << endl;
-
-		cardinal_curve(cardinal2, path2, FRAMES, 1.0);
-		path2_render.re_init_line(cardinal2);
-
 		// campath
 		campath_render.init();
 		for (int i = 0; i < campath_controlpts.size(); i++) {
@@ -1389,36 +1057,6 @@ public:
 		return mt;
 	}
 
-
-	mat4 setupCamAlongPath2(float frametime) {
-		// Translate Plane Along Path
-		static float sumft = 0; // sum of frame times
-		sumft += frametime;
-		float f = sumft * FRAMES;
-		int frame = f;
-		if (frame >= camcardinal.size() - 1) {								// loop through path
-			sumft = 0;
-			frame = 0;
-		}
-
-		camera->pos = camcardinal[frame];
-
-		float t = 0.0;
-		t = (float)(frame % (FRAMES - 1)) / (float)(FRAMES - 1);
-		vec3 ez1, ey1, ez2, ey2;
-		ez1 = ez2 = campath_controlpts[frame / (FRAMES - 1)][1];				// ez1 - up
-		ey1 = ey2 = campath_controlpts[frame / (FRAMES - 1)][2];				// ey1 - lookat
-
-		if ((frame / (FRAMES - 1)) + 1 < campath_controlpts.size()) {		// check if the next control pt exists
-			ez2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][1];		// ez2 - up
-			ey2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][2];		// ey2 - lookat
-		}
-
-		mat4 RotPlane = linint_between_two_orientations(ez1, ey1, ez2, ey2, t);
-		mat4 TransPlane = glm::translate(mat4(1.0), camcardinal[frame]);
-		return transpose(RotPlane) * TransPlane;
-	}
-
 	mat4 setupObjAlongPath(float frametime,  vector<vec3> path, vector<mat3> controlpts) {
 		mat4 TransPlane1, RotPlane1;
 		// Translate Plane Along Path
@@ -1449,6 +1087,35 @@ public:
 		return TransPlane1 * RotPlane1;
 	}
 
+	mat4 CamPathView(float frametime) {
+		// Translate Plane Along Path
+		static float sumft = 0; // sum of frame times
+		sumft += frametime;
+		float f = sumft * FRAMES;
+		int frame = f;
+		if (frame >= camcardinal.size() - 1) {								// loop through path
+			sumft = 0;
+			frame = 0;
+		}
+
+		camera->pos = camcardinal[frame];
+
+		float t = 0.0;
+		t = (float)(frame % (FRAMES - 1)) / (float)(FRAMES - 1);
+		vec3 ez1, ey1, ez2, ey2;
+		ez1 = ez2 = campath_controlpts[frame / (FRAMES - 1)][1];				// ez1 - up
+		ey1 = ey2 = campath_controlpts[frame / (FRAMES - 1)][2];				// ey1 - lookat
+
+		if ((frame / (FRAMES - 1)) + 1 < campath_controlpts.size()) {		// check if the next control pt exists
+			ez2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][1];		// ez2 - up
+			ey2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][2];		// ey2 - lookat
+		}
+
+		mat4 RotPlane = linint_between_two_orientations(ez1, ey1, ez2, ey2, t);
+		mat4 TransPlane = glm::translate(mat4(1.0), camcardinal[frame]);
+		return transpose(RotPlane) * TransPlane;
+	}
+
 	void render() {
 		double frametime = get_last_elapsed_time();
 		gametime += frametime;
@@ -1460,7 +1127,11 @@ public:
 		// Create the matrix stacks.
 		glm::mat4 V, M, P;
         P = getPerspectiveMatrix();
-        V = camera->getViewMatrix();
+        V = camera->getViewMatrix();		
+		if (cam_persp) {
+			V = CamPathView(frametime);
+		}
+
         M = glm::mat4(1);
         
         /*************** DRAW SHAPE ***************
@@ -1543,29 +1214,6 @@ public:
 		}
 
 		activate_red = 0;
-		size = 0.3, red = 0.0, green = 0.0;
-		for (int i = 0; i < path2_controlpts.size(); i++) {
-			S = scale(mat4(1.0), vec3(size));
-			mat4 transCP = translate(mat4(1.0), path2_controlpts[i][0]);
-			M = transCP * S;
-			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-			glUniform1f(prog->getUniform("red"), red);
-			glUniform1f(prog->getUniform("green"), green);
-			shape->draw(prog, false);
-
-			if (activate_red) {
-				red += 0.2;
-			}
-			else {
-				green += 0.2;
-			}
-			if (red >= 1.0 || green >= 1.0) {
-				activate_red = !activate_red;
-				red = 0.0; green = 0.0;
-			}
-		}
-
-		activate_red = 0;
 		size = 0.1, red = 0.0, green = 0.0;
 		for (int i = 0; i < campath_controlpts.size(); i++) {
 			mat4 transCP = translate(mat4(1.0), (campath_controlpts[i][0]*-1.0f));
@@ -1610,20 +1258,12 @@ public:
 		glUniformMatrix4fv(pplane->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 		plane->draw(pplane, false);		
 
-		// plane 2
-		M = T * setupObjAlongPath(frametime/2.0,  cardinal2, path2_controlpts) * RotateZPlane;
-		glUniformMatrix4fv(pplane->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-		plane->draw(pplane, false);
-
 		pplane->unbind();
 
 		// Draw the line path --------------------------------------------------------------
 		
 		glm::vec3 linecolor = glm::vec3(1, 0, 0);
 		path1_render.draw(P, V, linecolor);
-
-		linecolor = glm::vec3(0, 0, 1);
-		path2_render.draw(P, V, linecolor);
 
 		linecolor = glm::vec3(0, 0, 0);
 		campath_inverse_render.draw(P, V, linecolor);
@@ -1633,14 +1273,34 @@ public:
 int main(int argc, char **argv) {
 
 	// setup resource directory
-	std::string resourceDir = "../resources";
 	if (argc >= 2)
 		resourceDir = argv[1];
 
 	// open file to write path
-	file.open("pathinfo.txt");
-	if (!file.is_open()) 
+	ofile.open("pathinfo.txt");
+	if (!ofile.is_open())
 		cout << "warning! could not open pathinfo.txt file!" << endl;
+
+	/*
+	ifile_1.open("path1.txt");
+	if (!ifile_1.is_open()) {
+		cout << "warning! could not open path1.txt file!" << endl;
+	}
+	else {																	// load characters into vector array
+		/*char c = ' ';
+		while (file.get(c)) {
+			charData.push_back(tolower(c));
+			charData_Key.push_back(mapChar(c));									// map char to face using key
+			cout << c;
+		}
+		cout << endl; 
+
+		char* str = '\0';
+		ifile_1.getline(str, 10, ' ');
+	cout << "str: " << *str << endl;
+
+
+	}*/
 
 	Application *application = new Application();
 
