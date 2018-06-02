@@ -33,6 +33,7 @@ string resourceDir = "../resources/";
 //ifstream ifile_1;
 int renderstate = 1;
 int realspeed = 0;
+ControlPoint *ControlPoints = nullptr;
 
 
 double get_last_elapsed_time() {
@@ -117,6 +118,9 @@ public:
 			ofile << "{" << dir.x << "," << dir.y << "," << dir.z << "}," << endl;
 			ofile << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
 			ofile << endl;
+
+			/* testing controlpoints class */
+			ControlPoints->addPoint(pos, dir, up, resourceDir + "path1.txt");
 		}
 
        
@@ -1014,6 +1018,9 @@ public:
         pplane->setShaderNames(resourceDirectory + "/plane.vert", resourceDirectory + "/plane.frag");
         pplane->init();
 
+		// init control points -----------
+		ControlPoints->loadPoints(resourceDir + "path1.txt");
+
 	}
     
     glm::mat4 getPerspectiveMatrix() {
@@ -1270,15 +1277,13 @@ public:
 		linecolor = glm::vec3(0, 0, 0);
 		campath_inverse_render.draw(P, V, linecolor);
 	}
+
 };
 
 // testing control points
 void testCPClass() {
-	ControlPoint *CP = nullptr;
-	CP = new ControlPoint();
-
-	//CP->loadPoints(resourceDir + "path1.txt");
-	CP->clearPoints(resourceDir + "path1.txt");
+	//ControlPoints->loadPoints(resourceDir + "path1.txt");
+	ControlPoints->clearPoints(resourceDir + "path1.txt");
 
 }
 
@@ -1288,12 +1293,13 @@ int main(int argc, char **argv) {
 	if (argc >= 2)
 		resourceDir = argv[1];
 
+	// Initialize Control Points
+	ControlPoints = new ControlPoint();
+
 	// open file to write path
 	ofile.open(resourceDir + "pathinfo.txt");
 	if (!ofile.is_open())
 		cout << "warning! could not open pathinfo.txt file!" << endl;
-
-	testCPClass();
 	/*
 	ifile_1.open("path1.txt");
 	if (!ifile_1.is_open()) {
