@@ -17,12 +17,13 @@ public:
 
 	std::vector<glm::mat3> points;
 
-	std::ifstream file;
+	std::fstream file;
 
 	ControlPoint() {}
 	~ControlPoint() {}
 
-	void loadPoints(std::string filename);
+	bool loadPoints(std::string filename);		// return false if file can't load
+	bool clearPoints(std::string filename);
 
 
 

@@ -1277,7 +1277,8 @@ void testCPClass() {
 	ControlPoint *CP = nullptr;
 	CP = new ControlPoint();
 
-	CP->loadPoints(resourceDir + "path1.txt");
+	//CP->loadPoints(resourceDir + "path1.txt");
+	CP->clearPoints(resourceDir + "path1.txt");
 
 }
 

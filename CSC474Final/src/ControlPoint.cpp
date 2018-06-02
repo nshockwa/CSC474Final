@@ -11,11 +11,14 @@
 using namespace std;
 using namespace glm;
 
-void ControlPoint::loadPoints(string filename) {
+bool ControlPoint::loadPoints(string filename) {
 
-	file.open(filename);
+	cout << "[ControlPoints.cpp] Loading points from file: " << filename << endl;
+
+	file.open(filename, ios::in);	// ---------- open file
 	if (!file.is_open()) {
 		cout << "Warning: Could not open file - " << filename << endl;
+		return false;
 	}
 
 	// read file and store points
@@ -24,10 +27,7 @@ void ControlPoint::loadPoints(string filename) {
 	//while (file.peek() != EOF) {
 	try {
 
-		string temp;
-		
 		int c = 0;
-
 		string line; 
 		mat3 pt = mat3(1.0);
 		while ((c = file.peek()) != EOF) {
@@ -49,13 +49,28 @@ void ControlPoint::loadPoints(string filename) {
 
 	}
 	catch (exception e) {
-		cout << "ERROR: File format must be: \n <text>" << endl;
+		cout << "ERROR: File format must be: " << endl;
+		cout << "/n " << endl;
+		cout << "x1 y1 z1 x2 y2 z2 x3 y3 z3" << endl;
+		cout << endl;
 	}
 
+	file.close();			// ------- close file
 
+
+	/* TESTING */
 	cout << "printing out points" << endl;
 	for (int i = 0; i < points.size(); i++) {
 		cout << to_string(points[i]) << endl;
 	}
+	return true;
 
 }
+
+bool ControlPoint::clearPoints(string filename) {
+	cout << "[ControlPoints.cpp] Clearing points from file: " << filename << endl;
+	file.open(filename, ios::out);	// ---------- open file
+	file.close();
+	return true;
+}
+
