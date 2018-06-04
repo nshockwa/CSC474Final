@@ -69,6 +69,24 @@ else()
 endif()
 
 
+# Add FBX
+# Get the FBX environment variable.
+set(FBX_DIR "$ENV{FBX_DIR}")
+if(FBX_DIR)
+  message(STATUS "FBX environment variable found")
+
+  include_directories(${FBX_DIR}/include)
+  if (APPLE)
+    if(CMAKE_BUILD_TYPE MATCHES Release)
+      target_link_libraries(${CMAKE_PROJECT_NAME} ${FBX_DIR}/lib/clang/release/libfbxsdk.a)
+    else()
+      target_link_libraries(${CMAKE_PROJECT_NAME} ${FBX_DIR}/lib/clang/debug/libfbxsdk.a)
+    endif()
+  endif()
+endif()
+
+
+
 
 # Add GLM
 # Get the GLM environment variable. Since GLM is a header-only library, we

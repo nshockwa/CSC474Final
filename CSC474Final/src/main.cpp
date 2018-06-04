@@ -21,6 +21,8 @@
 #include "Camera.h"
 #include "line.h"
 #include "ControlPoint.h"
+#include "bone.h"
+
 
 #define MESHSIZE 100		// terrain
 #define	FRAMES 61			// plane animation
@@ -50,15 +52,29 @@ public:
 
     std::shared_ptr<Shape> shape, plane;
 	std::shared_ptr<Program> phongShader, prog, heightshader, skyprog, linesshader, pplane;
-    
+
     double gametime = 0;
     bool wireframeEnabled = false;
     bool mousePressed = false;
     bool mouseCaptured = false;
+		bool switchAnim = false;
+		bool slowMo = false;
+		bool speedUp = false;
     glm::vec2 mouseMoveOrigin = glm::vec2(0);
     glm::vec3 mouseMoveInitialCameraRot;
 
-    // terrain 
+
+		//FBX animation
+		GLuint VAO, VBO, VBO2;
+		bone *root = NULL;
+		int boneCount = 0;
+		vector<mat4> animMats;
+		int currentKeyframe = 0;
+		mat4 animmat[200];
+		int animmatsize=0;
+		all_animations all_animation;
+
+    // terrain
     GLuint VertexArrayID;
     GLuint MeshPosID, MeshTexID, IndexBufferIDBox;
     GLuint TextureID, Texture2ID, HeightTexID, AudioTex, AudioTexBuf;
@@ -71,13 +87,13 @@ public:
 	vector<mat3> path1_controlpts, campath_controlpts;
 
 	// toggle plane camera perspective
-	int cam_persp = 0;		// toggle camera perspective 
+	int cam_persp = 0;		// toggle camera perspective
 	int back_count = 0; // keep track of how many nodes I added
 
     Application() {
         camera = new Camera();
     }
-    
+
     ~Application() {
         delete camera;
     }
@@ -101,7 +117,7 @@ public:
 			cout << "point position:" << pos.x << "," << pos.y<< "," << pos.z << endl;
 			cout << "Zbase:" << dir.x << "," << dir.y << "," << dir.z << endl;
 			cout << "Ybase:" << up.x << "," << up.y << "," << up.z << endl;
-		}		
+		}
 		if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS) {
 			vec3 dir, pos, up;
 			camera->getUpRotPos(up, dir, pos);
@@ -118,8 +134,16 @@ public:
 			ofile << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
 			ofile << endl;
 		}
+					if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+						switchAnim = !switchAnim;
+					}
+					if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+						slowMo = !slowMo;
+					}
+					if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+						speedUp = !speedUp;
+					}
 
-       
         // Polygon mode (wireframe vs solid)
         if (key == GLFW_KEY_P && action == GLFW_PRESS) {
             wireframeEnabled = !wireframeEnabled;
@@ -143,7 +167,7 @@ public:
             resetMouseMoveInitialValues(window);
         }
     }
-    
+
     void mouseMoveCallback(GLFWwindow *window, double xpos, double ypos) {
         if (mousePressed || mouseCaptured) {
             float yAngle = (xpos - mouseMoveOrigin.x) / windowManager->getWidth() * 3.14159f;
@@ -153,7 +177,7 @@ public:
     }
 
 	void resizeCallback(GLFWwindow *window, int in_width, int in_height) { }
-    
+
     // Reset mouse move initial position and rotation
     void resetMouseMoveInitialValues(GLFWwindow *window) {
         double mouseX, mouseY;
@@ -185,7 +209,7 @@ public:
                 vertices[x * 6 + z*MESHSIZE * 6 + 5] = vec3(0.0, 0.0, 1.0) + vec3(x, 0, z);//LU
 
             }
-    
+
         }
         glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * MESHSIZE * MESHSIZE * 6, vertices, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(0);
@@ -227,7 +251,7 @@ public:
             elements[i + 5] = ind + 5;
             elements[i + 6] = ind + 5;
             elements[i + 7] = ind + 0;
-            }           
+            }
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*MESHSIZE * MESHSIZE * 8, elements, GL_STATIC_DRAW);
         delete[] elements;
         glBindVertexArray(0);
@@ -302,7 +326,7 @@ public:
         glUseProgram(skyprog->getPID());
         glUniform1i(Tex1Location, 0);
         glUniform1i(Tex2Location, 1);
-        
+
         Tex1Location = glGetUniformLocation(linesshader->getPID(), "tex");//tex, tex2... sampler in the fragment shader
         Tex2Location = glGetUniformLocation(linesshader->getPID(), "tex2");
         // Then bind the uniform samplers to texture units:
@@ -967,31 +991,61 @@ public:
 		campath_inverse_render.re_init_line(camcardinal_inverse);
 	}
 
+	void initAnim(const std::string& resourceDirectory) {
+		// Read FBX file
+			std::vector<glm::vec3> boneVertices;
+			std::vector<unsigned int> indexBuffer;
+			for (int ii = 0; ii < 200; ii++)
+					animmat[ii] = mat4(1);
+			//readtobone(resourceDirectory + "/test.fbx", &all_animation, &root);
+			readtobone(resourceDirectory + "/CompleteRiggedDragonFly.fbx", &all_animation, &root);
+			readtobone(resourceDirectory + "/CompleteRiggedDragonRun.fbx", &all_animation, NULL);
+//        readtobone(&root, (resourceDirectory + "/test.fbx").c_str(), animations);
+//        readtobone(&root, (resourceDirectory + "/axisneurontestfile_binary.fbx").c_str());
+			root->write_to_VBOs(glm::vec3(0), boneVertices, indexBuffer);
+			root->set_animations(&all_animation,animmat,animmatsize);
+//        root->findAnimations(animations[0]);
+//        root->assignMatrix(&animMats);
+			boneCount = boneVertices.size();
 
+			glGenVertexArrays(1, &VAO);
+			glBindVertexArray(VAO);
 
+			glGenBuffers(1, &VBO);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferData(GL_ARRAY_BUFFER, boneVertices.size() * sizeof(glm::vec3), boneVertices.data(), GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+
+			glGenBuffers(1, &VBO2);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+			glBufferData(GL_ARRAY_BUFFER, indexBuffer.size() * sizeof(unsigned int), indexBuffer.data(), GL_STATIC_DRAW);
+			glEnableVertexAttribArray(3);
+			glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, 0, (const void *)0);
+}
 	void initGeom(const std::string& resourceDirectory) {
 		init_terrain_mesh();
-
         shape = make_shared<Shape>();
         shape->loadMesh(resourceDirectory + "/sphere.obj");
         shape->resize();
         shape->init();
+				initAnim(resourceDirectory);
 
         init_terrain_tex(resourceDirectory);
 
         initPlaneStuff(resourceDirectory);
 
 	}
-	
+
 	void init(const std::string& resourceDirectory) {
 		GLSL::checkVersion();
 
 		// Enable z-buffer test.
 		glEnable(GL_DEPTH_TEST);
-        
+
 		// Initialize the GLSL programs
         phongShader = std::make_shared<Program>();
-        phongShader->setShaderNames(resourceDirectory + "/phong.vert", resourceDirectory + "/phong.frag");
+        phongShader->setShaderNames(resourceDirectory + "/shader_vertex.glsl", resourceDirectory + "/shader_fragment.glsl");
         phongShader->init();
 
         skyprog = std::make_shared<Program>();
@@ -1015,7 +1069,7 @@ public:
         pplane->init();
 
 	}
-    
+
     glm::mat4 getPerspectiveMatrix() {
         float fov = 3.14159f / 4.0f;
         float aspect = windowManager->getAspect();
@@ -1070,7 +1124,7 @@ public:
 			sumft = 0;
 			frame = 0;
 		}
-	
+
 		// Rotate Plane Along Path
 		vec3 ez1, ey1, ez2, ey2;							// zbase and ybase vectors for two contorl points
 		static float t = 0.0;								// t for interpoltation
@@ -1129,13 +1183,13 @@ public:
 		// Create the matrix stacks.
 		glm::mat4 V, M, P;
         P = getPerspectiveMatrix();
-        V = camera->getViewMatrix();		
+        V = camera->getViewMatrix();
 		if (cam_persp) {
 			V = CamPathView(frametime);
 		}
 
         M = glm::mat4(1);
-        
+
         /*************** DRAW SHAPE ***************
         M = glm::translate(glm::mat4(1), glm::vec3(0, 0, -3));
         phongShader->bind();
@@ -1171,7 +1225,7 @@ public:
         vec3 bg = vec3(254. / 255., 225. / 255., 168. / 255.);
         if (renderstate == 2)
             bg = vec3(49. / 255., 88. / 255., 114. / 255.);
-        
+
         heightshader->bind();
         heightshader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
         glUniform3fv(heightshader->getUniform("camoff"), 1, &offset[0]);
@@ -1181,11 +1235,11 @@ public:
         glBindVertexArray(VertexArrayID);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, HeightTexID);
-        glDrawArrays(GL_TRIANGLES, 0, MESHSIZE*MESHSIZE * 6);           
-        heightshader->unbind(); 
-		
+        glDrawArrays(GL_TRIANGLES, 0, MESHSIZE*MESHSIZE * 6);
+        heightshader->unbind();
+
 		//cout << camera->pos.x << " " << camera->pos.y << " " << camera->pos.z << " " << endl;
-	
+
 		// draw control points
 		prog->bind();
 		glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, &P[0][0]);
@@ -1212,7 +1266,7 @@ public:
 			if (red >= 1.0 || green >= 1.0) {
 				activate_red = !activate_red;
 				red = 0.0; green = 0.0;
-			} 
+			}
 		}
 
 		activate_red = 0;
@@ -1235,7 +1289,7 @@ public:
 				activate_red = !activate_red;
 				red = 0.0; green = 0.0;
 			}
-		}	
+		}
 
 		// Draw the plane -------------------------------------------------------------------
 		pplane->bind();
@@ -1258,17 +1312,104 @@ public:
 
 		M =  T * setupObjAlongPath(frametime/2.0, cardinal, path1_controlpts)* RotateZPlane;
 		glUniformMatrix4fv(pplane->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-		plane->draw(pplane, false);		
+		plane->draw(pplane, false);
 
 		pplane->unbind();
 
 		// Draw the line path --------------------------------------------------------------
-		
+
 		glm::vec3 linecolor = glm::vec3(1, 0, 0);
 		path1_render.draw(P, V, linecolor);
 
 		linecolor = glm::vec3(0, 0, 0);
 		campath_inverse_render.draw(P, V, linecolor);
+
+
+		//anim ish *******************************************************
+		static double totaltime_ms=0;
+		totaltime_ms += frametime*1000.0;
+		static double totaltime_untilframe_ms = 0;
+		totaltime_untilframe_ms += frametime*1000.0;
+
+		P = getPerspectiveMatrix();
+	V = camera->getViewMatrix();
+	M = glm::mat4(1);
+
+	// Setup Animation
+	string animationName = "";
+	int animIdx = 0;
+	if (!switchAnim)
+	{
+		animationName = "ArmatureAction";
+		animIdx = 0;
+	}
+	else
+	{
+		animationName = "ArmatureAction2";
+		animIdx = 1;
+	}
+	for (int ii = 0; ii < 200; ii++)
+			animmat[ii] = mat4(1);
+	long long animationDuration = root->getDuration("ArmatureAction");
+	int keyFrameCount = root->getKeyFrameCount("ArmatureAction");
+	int anim_step_width_ms = animationDuration / keyFrameCount;
+	static float frame = 0;
+	//static float fframe = 0;
+	if (totaltime_untilframe_ms >= anim_step_width_ms)
+	{
+			totaltime_untilframe_ms = 0;
+			if (slowMo)
+			{
+				frame += 0.1f;
+			}
+			else if (speedUp)
+			{
+				frame+=3;
+			}
+			else
+			{
+				frame++;
+			}
+	}
+	if (frame >= 24)
+	{
+		frame = 0;
+	}
+
+	static float inter = 0;
+
+	//root->play_animation(frame,"axisneurontestfile_Avatar00");
+
+	//root->play_animation(frame,"avatar_0_fbx_tmp");
+	//root->play_animation(frame,"Clip_Run_Cycle");
+	root->play_animation(frame, animationName, inter);
+	if (switchAnim && inter < 1)
+	{
+		inter += frametime;
+	}
+	else if (!switchAnim && inter > 0)
+	{
+		inter -= frametime;
+	}
+
+	/**************/
+	/* DRAW SHAPE */
+	/**************/
+	S = glm::scale(glm::mat4(1), glm::vec3(0.1f));
+	T = glm::translate(glm::mat4(1), glm::vec3(0, 0, -30));
+	angle = 90.0f;
+	glm:: mat4 R = glm::rotate(glm::mat4(1), angle, glm::vec3(0,1,0));
+	M = T * R * S;
+	phongShader->bind();
+	phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+//	glUniformMatrix4fv(phongShader->getUniform("Manim"), 200, GL_FALSE, &animmat[0][0][0]);
+	phongShader->setMatrixArray("Manim", 200, &animmat[0][0][0]);
+//        phongShader->setMatrixArray("animMats", 73, &animMats[0][0][0]);
+//        phongShader->setInt("keyframe", currentKeyframe);
+//        shape->draw(phongShader, false);
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_LINES, 0, boneCount-4);
+	phongShader->unbind();
 	}
 };
 
@@ -1305,7 +1446,7 @@ int main(int argc, char **argv) {
 			charData_Key.push_back(mapChar(c));									// map char to face using key
 			cout << c;
 		}
-		cout << endl; 
+		cout << endl;
 
 		char* str = '\0';
 		ifile_1.getline(str, 10, ' ');
@@ -1325,7 +1466,7 @@ int main(int argc, char **argv) {
 	// Initialize scene.
 	application->init(resourceDir);
 	application->initGeom(resourceDir);
-    
+
 	// Loop until the user closes the window.
 	while (!glfwWindowShouldClose(windowManager->getHandle())) {
         // Update camera position.
