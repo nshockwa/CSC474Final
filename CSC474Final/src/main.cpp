@@ -119,7 +119,7 @@ public:
 			cout << "Zbase:" << dir.x << "," << dir.y << "," << dir.z << endl;
 			cout << "Ybase:" << up.x << "," << up.y << "," << up.z << endl;
 		}
-		if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS) {
+		if (key == GLFW_KEY_R && action == GLFW_PRESS) {
 			vec3 dir, pos, up;
 			camera->getUpRotPos(up, dir, pos);
 			cout << endl;
@@ -136,7 +136,7 @@ public:
 			ofile << endl;
 
 			/* testing Path1_CP class */
-			Path1_CP->addPoint(pos, dir, up, resourceDir + "path1.txt");
+			Path1_CP->addPoint(pos, dir, up, resourceDir + "/path1.txt");
 		}
 					if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 						switchAnim = !switchAnim;
@@ -424,7 +424,7 @@ public:
 
 		// load dragon.obj
 		dragon = make_shared<Shape>();
-		dragon->loadMesh(resourceDirectory + "/ufo.obj");
+		dragon->loadMesh(resourceDirectory + "/sphere.obj");
 		dragon->resize();
 		dragon->init();
 
@@ -465,7 +465,7 @@ public:
         pplane->init();
 
 		// init control points -----------
-		Path1_CP->loadPoints(resourceDir + "path1.txt");
+		Path1_CP->loadPoints(resourceDirectory + "/path1.txt");
 
 	}
 
@@ -474,7 +474,7 @@ public:
         float aspect = windowManager->getAspect();
         return glm::perspective(fov, aspect, 0.01f, 10000.0f);
     }
-	
+
     mat4 linint_between_two_orientations(vec3 ez_lookto_1, vec3 ey_up_1, vec3 ez_lookto_2, vec3 ey_up_2, float t) {
 		mat4 m1, m2;
 		quat q1, q2;
@@ -665,7 +665,7 @@ public:
 				red = 0.0; green = 0.0;
 			}
 		}
-		
+
 		activate_red = 0;
 		size = 0.1, red = 0.0, green = 0.0;
 		for (int i = 0; i < campath_controlpts.size(); i++) {
@@ -689,27 +689,27 @@ public:
 		}
 
 		// Draw the Dragon -------------------------------------------------------------------
-		pplane->bind();
-
-		glUniformMatrix4fv(pplane->getUniform("P"), 1, GL_FALSE, &P[0][0]);				// send constant attributes to shaders
-		glUniformMatrix4fv(pplane->getUniform("V"), 1, GL_FALSE, &V[0][0]);
-		glUniform3fv(pplane->getUniform("campos"), 1, &camera->pos[0]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Texture2ID);
-
-		// initalize transformation of dragon
-		glm::mat4 T = glm::translate(glm::mat4(1.0f), vec3(0, 0, -3));
-		glm::mat4 ScalePlane = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
-		float sangle = -3.1415926 / 2.;
-		glm::mat4 RotateXPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(1, 0, 0));
-		sangle = 3.1415926;
-		glm::mat4 RotateZPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(0, 0, 1));
-		glm::mat4 RotateYPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(0, 1, 0));
-
-		M =  T * TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points)* RotateZPlane;
-		glUniformMatrix4fv(pplane->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-		dragon->draw(pplane, false);		
-		pplane->unbind();
+		// pplane->bind();
+		//
+		// glUniformMatrix4fv(pplane->getUniform("P"), 1, GL_FALSE, &P[0][0]);				// send constant attributes to shaders
+		// glUniformMatrix4fv(pplane->getUniform("V"), 1, GL_FALSE, &V[0][0]);
+		// glUniform3fv(pplane->getUniform("campos"), 1, &camera->pos[0]);
+		// glActiveTexture(GL_TEXTURE0);
+		// glBindTexture(GL_TEXTURE_2D, Texture2ID);
+		//
+		// // initalize transformation of dragon
+		// glm::mat4 T = glm::translate(glm::mat4(1.0f), vec3(0, 0, -3));
+		// glm::mat4 ScalePlane = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
+		// float sangle = -3.1415926 / 2.;
+		// glm::mat4 RotateXPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(1, 0, 0));
+		// sangle = 3.1415926;
+		// glm::mat4 RotateZPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(0, 0, 1));
+		// glm::mat4 RotateYPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(0, 1, 0));
+		//
+		// M =  T * TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points)* RotateZPlane;
+		// glUniformMatrix4fv(pplane->getUniform("M"), 1, GL_FALSE, &M[0][0]);
+		// dragon->draw(pplane, false);
+		// pplane->unbind();
 
 		// Draw the line path --------------------------------------------------------------
 
@@ -791,10 +791,10 @@ public:
 	/* DRAW SHAPE */
 	/**************/
 	S = glm::scale(glm::mat4(1), glm::vec3(0.1f));
-	T = glm::translate(glm::mat4(1), glm::vec3(0, 0, -30));
-	angle = 90.0f;
-	glm:: mat4 R = glm::rotate(glm::mat4(1), angle, glm::vec3(0,1,0));
-	M = T * R * S;
+	glm::mat4	T = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0));
+	//angle = 180.0f;
+	//glm:: mat4 R = glm::rotate(glm::mat4(1), glm::radians(angle), glm::vec3(0,1,0));
+	M = T * TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points) * S ;
 	phongShader->bind();
 	phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 //	glUniformMatrix4fv(phongShader->getUniform("Manim"), 200, GL_FALSE, &animmat[0][0][0]);
