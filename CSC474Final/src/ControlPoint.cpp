@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include "glm/gtx/string_cast.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 
 #include "ControlPoint.h"
@@ -117,4 +118,30 @@ glm::mat3 ControlPoint::addPoint(vec3 pos, vec3 dir, vec3 up, string filename) {
 
 	return pt;
 }
+
+// Fill array of model matrices
+void ControlPoint::buildModelMat(float size) {
+
+	for (int i = 0; i < points.size(); i++) {
+		glm::mat4 S = scale(mat4(1.0), vec3(size));			// scale
+		mat4 transCP = translate(mat4(1.0), points[i][0]);	// translate
+		
+		mat4 M = transCP * S;								// model mat
+		modelMats.push_back(M);
+	}
+}
+glm::mat4 ControlPoint::getModelMat(int idx) {
+
+	if (modelMats.size() <= 0) {
+		cout << "ControlPoint::Error: Model matrices not built!" << endl;
+		return glm::mat4(0.0);
+	}
+	if (modelMats.size() <= idx) {
+		cout << "ControlPoint::Error: index out of bound." << endl;
+		return glm::mat4(0.0);
+	}
+
+	return modelMats[idx];
+}
+
 
