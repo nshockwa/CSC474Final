@@ -3,6 +3,7 @@
 #include <fstream>
 #include <glm/glm.hpp>
 #include <string>
+#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/string_cast.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -145,3 +146,4 @@ glm::mat4 ControlPoint::getModelMat(int idx) {
 }
 
 
+}

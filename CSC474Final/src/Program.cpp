@@ -16,12 +16,12 @@ void Program::setShaderNames(const std::string &v, const std::string &f) {
 
 GLuint Program::compileShader(GLenum shaderType, const std::string &shaderSourceFile) {
     GLint compileSuccess;
-    
+
     // Read the shader source file into a string
     char *shaderString = GLSL::textFileRead(shaderSourceFile.c_str());
     // Stop if there was an error reading the shader source file
     if (shaderString == NULL) return 0;
-    
+
     // Create the shader, assign source code, and compile it
     GLuint shader = glCreateShader(shaderType);
     CHECKED_GL_CALL(glShaderSource(shader, 1, &shaderString, NULL));
@@ -35,10 +35,10 @@ GLuint Program::compileShader(GLenum shaderType, const std::string &shaderSource
         }
         exit(EXIT_FAILURE);
     }
-    
+
     // Free the memory
     free(shaderString);
-    
+
     return shader;
 }
 
@@ -65,7 +65,7 @@ bool Program::init() {
         }
         exit(EXIT_FAILURE);
 	}
-    
+
     // Process the vertex and fragment shader programs to automatically add attribute and uniform variables
     findAttributesAndUniforms(vShaderName);
     findAttributesAndUniforms(fShaderName);
@@ -116,9 +116,9 @@ void Program::findAttributesAndUniforms(const std::string &shaderSourceFile) {
     char *fileText = GLSL::textFileRead(shaderSourceFile.c_str());
     char *token;
     char *lastToken;
-    
+
     std::vector<char *> lines;
-    
+
     // Read the first line
     token = strtok(fileText, ";\n");
     lines.push_back(token);
@@ -128,23 +128,26 @@ void Program::findAttributesAndUniforms(const std::string &shaderSourceFile) {
     }
 //    std::cout << shaderSourceFile << std::endl;
 //    std::cout << "Lines read: " << lines.size() << std::endl;
-    
+
     // Look for keywords per line
     for (char *line : lines) {
         token = strtok(line, " (\n");
         if (token == NULL) continue;
         if (strcmp(token, "uniform") == 0) {
-            
+
             // Handle lines with multiple variables separated by commas
             char *lineEnding = line + strlen(line) + 1;
             int lastDelimiter = -1;
             int lineEndingLength = strlen(lineEnding);
+            bool openingBracketFound = false;
             for (int i = 0; i < lineEndingLength; i++) {
-                if (lineEnding[i] == ',') {
+                if (lineEnding[i] == ',' || lineEnding[i] == '[') {
+                    if (lineEnding[i] == '[') openingBracketFound = true;
                     lineEnding[i] = '\0';
                     addUniform(lineEnding + (lastDelimiter + 1));
                     lastDelimiter = i;
-                } else if (lineEnding[i] == ' ' || lineEnding[i] == '\t') {
+                } else if (openingBracketFound || lineEnding[i] == ']' || lineEnding[i] == ' ' || lineEnding[i] == '\t') {
+                    if (lineEnding[i] == ']') openingBracketFound = false;
                     lastDelimiter = i;
                 }
             }
@@ -158,10 +161,11 @@ void Program::findAttributesAndUniforms(const std::string &shaderSourceFile) {
             continue;
         }
     }
-    
+
     // Free the memory
     free(fileText);
 }
+
 
 void Program::setMatrix(const char *name, const GLfloat *value) {
     CHECKED_GL_CALL(glUniformMatrix4fv(getUniform(name), 1, GL_FALSE, value));
