@@ -36,7 +36,7 @@ bool ControlPoint::loadPoints(string filename) {
 			mat3 pt = mat3(1.0);							// store point here
 
 			if (c_line[0] != '\n' && c_line[0] != '\0') {
-					char * c = '\0';
+					char * c = "\0";
 					
 					c = strtok(c_line, " \n");		// x	// X BASE
 					pt[0].x = stof(string(c));
@@ -143,7 +143,4 @@ glm::mat4 ControlPoint::getModelMat(int idx) {
 	}
 
 	return modelMats[idx];
-}
-
-
 }
