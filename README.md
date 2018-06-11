@@ -43,3 +43,9 @@ Dreams-VR
   - git checkout . (this will remove all changes)
 - if you have done "git commit -m 'MESSAGE HERE'" 
   - git revert DESIRED_COMMIT_ID
+
+### Other
+- delete local branch
+  - git branch -d the_local_branch
+- delete remote branch
+  - safely do it on site
