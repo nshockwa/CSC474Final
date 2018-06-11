@@ -12,7 +12,7 @@ uniform mat4 M;
 uniform mat4 Manim[200];
 
 out vec3 vertex_pos;
-// void main()
+// old anim void main()
 // {
 
 // 	mat4 Ma = Manim[vertimat];

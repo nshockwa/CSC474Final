@@ -51,8 +51,8 @@ public:
 	WindowManager *windowManager = nullptr;
     Camera *camera = nullptr;
 
-    std::shared_ptr<Shape> shape, dragon;
-	std::shared_ptr<Program> phongShader, prog, heightshader, skyprog, linesshader, pplane;
+    std::shared_ptr<Shape> shape, dbone, dragon;
+	std::shared_ptr<Program> dboneShader, phongShader, prog, heightshader, skyprog, linesshader, pplane;
 
     double gametime = 0;
     bool wireframeEnabled = false;
@@ -421,7 +421,10 @@ public:
         shape->init();
 				initAnim(resourceDirectory);
 
-
+				dbone = make_shared<Shape>();
+				dbone->loadMesh(resourceDirectory + "/bone.obj");
+				dbone->resize();
+				dbone->init();
 		// load dragon.obj
 		dragon = make_shared<Shape>();
 		dragon->loadMesh(resourceDirectory + "/sphere.obj");
@@ -444,13 +447,17 @@ public:
         phongShader->setShaderNames(resourceDirectory + "/shader_vertex.glsl", resourceDirectory + "/shader_fragment.glsl");
         phongShader->init();
 
+				dboneShader = std::make_shared<Program>();
+        dboneShader->setShaderNames(resourceDirectory + "/dbone.vert", resourceDirectory + "/dbone.frag");
+        dboneShader->init();
+
         skyprog = std::make_shared<Program>();
         skyprog->setShaderNames(resourceDirectory + "/sky.vert", resourceDirectory + "/sky.frag");
         skyprog->init();
 
         prog = std::make_shared<Program>();
         prog->setShaderNames(resourceDirectory + "/shader.vert", resourceDirectory + "/shader.frag");
-		prog->init();
+				prog->init();
 
         heightshader = std::make_shared<Program>();
         heightshader->setShaderNames(resourceDirectory + "/height.vert", resourceDirectory + "/height.frag", resourceDirectory + "/height.geom");
@@ -805,6 +812,14 @@ public:
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_LINES, 0, boneCount-4);
 	phongShader->unbind();
+
+	dboneShader->bind();
+	//for (mat4 mat : animmat)
+	//{
+		M = T * TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points) * S ;
+		dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		dbone->draw(dboneShader,false);
+	//}
 	}
 
 };
