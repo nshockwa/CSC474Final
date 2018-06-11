@@ -131,13 +131,19 @@ public:
 			cout << "Ybase:" << up.x << "," << up.y << "," << up.z << endl;
 			cout << "point saved into ofile!" << endl << endl;
 			cout << endl;
-			ofile << "{{" << pos.x << "," << pos.y << "," << pos.z << "}," << endl;
-			ofile << "{" << dir.x << "," << dir.y << "," << dir.z << "}," << endl;
-			ofile << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
-			ofile << endl;
+			// ofile << "{{" << pos.x << "," << pos.y << "," << pos.z << "}," << endl;
+			// ofile << "{" << dir.x << "," << dir.y << "," << dir.z << "}," << endl;
+			// ofile << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
+			// ofile << endl;
 
 			/* testing Path1_CP class */
 			Path1_CP->addPoint(pos, dir, up, resourceDir + "/path1.txt");
+			Path1_CP->points[Path1_CP->getSize() - 1][0] *= -1.0f;
+			path1.push_back(Path1_CP->points[Path1_CP->getSize() - 1][0]);
+			path1_render.re_init_line(path1);
+			cardinal_curve(path1_cardinal, path1, FRAMES, 1.0);
+			path1_render.re_init_line(path1_cardinal);
+
 		}
 					if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 						switchAnim = !switchAnim;
@@ -433,7 +439,7 @@ public:
 		dbone->init();
 		// load dragon.obj
 		dragon = make_shared<Shape>();
-		dragon->loadMesh(resourceDirectory + "/sphere.obj");
+		dragon->loadMesh(resourceDirectory + "/FA18.obj");
 		dragon->resize();
 		dragon->init();
 
@@ -528,6 +534,7 @@ public:
 	mat4 TranslateObjAlongPath(float frametime,  vector<vec3> path, vector<mat3> controlpts) {
 		mat4 TransPlane1, RotPlane1;
 		// Translate Plane Along Path
+		if (controlpts.size() < 3) return mat4(0.0);
 		static float sumft = 0; // sum of frame times
 		sumft += frametime;
 		float f = sumft * FRAMES;
@@ -801,16 +808,14 @@ public:
 	/**************/
 	S = glm::scale(glm::mat4(1), glm::vec3(1.0f));
 	glm::mat4	T = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0));
-	//angle = 180.0f;
-	//glm:: mat4 R = glm::rotate(glm::mat4(1), glm::radians(angle), glm::vec3(0,1,0));
-	M = T * TranslateObjAlongPath(frametime / 2.0, path1_cardinal, Path1_CP->points) * S;//T *TranslateObjAlongPath(frametime / 2.0, path1_cardinal, Path1_CP->points) * S;
+	glm::mat4 pathMB = TranslateObjAlongPath(frametime/258.0, path1_cardinal, Path1_CP->points); //bones
+	glm::mat4 pathML = TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points); // lines
+	M = pathML * S;
 	phongShader->bind();
 	phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-//	glUniformMatrix4fv(phongShader->getUniform("Manim"), 200, GL_FALSE, &animmat[0][0][0]);
 	phongShader->setMatrixArray("Manim", 200, &animmat[0][0][0]);
-//        phongShader->setMatrixArray("animMats", 73, &animMats[0][0][0]);
-//        phongShader->setInt("keyframe", currentKeyframe);
-//        shape->draw(phongShader, false);
+
+
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_LINES, 0, boneCount-4);
 	phongShader->unbind();
@@ -820,14 +825,14 @@ public:
 	{
 		if (i==10)
 	  {
-			glm::mat4 R = glm::rotate(mat4(1),glm::radians(180.0f), glm::vec3(0,1,0))*  glm::rotate(mat4(1),glm::radians(90.0f), glm::vec3(0,0,1)),
-		 	M = TranslateObjAlongPath(frametime/258.0, path1_cardinal, Path1_CP->points) *animbones[10]*  R *  scale(mat4(1), vec3(0.6, 0.6, 0.6));
+			glm::mat4 R = glm::rotate(mat4(1),glm::radians(180.0f), glm::vec3(0,1,0))*  glm::rotate(mat4(1),glm::radians(90.0f), glm::vec3(0,0,1));
+		 	M =  pathMB * animbones[10]*  R *  scale(mat4(1), vec3(0.6, 0.6, 0.6));
 		 	dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 		 	skull ->draw(dboneShader,false);
 	  }
 		else
 		{
-			M = TranslateObjAlongPath(frametime/258.0, path1_cardinal, Path1_CP->points) *animbones[i]*  translate(mat4(1), vec3(0.5, 0, 0))*scale(mat4(1), vec3(0.4, 0.4, 0.4));
+			M = pathMB * animbones[i]*  translate(mat4(1), vec3(0.5, 0, 0))*scale(mat4(1), vec3(0.4, 0.4, 0.4));
 			dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 			dbone->draw(dboneShader,false);
 		}
@@ -844,31 +849,6 @@ int main(int argc, char **argv) {
 
 	// Initialize Control Points
 	Path1_CP = new ControlPoint();
-
-	// open file to write path
-	ofile.open(resourceDir + "pathinfo.txt");
-	if (!ofile.is_open())
-		cout << "warning! could not open pathinfo.txt file!" << endl;
-	/*
-	ifile_1.open("path1.txt");
-	if (!ifile_1.is_open()) {
-		cout << "warning! could not open path1.txt file!" << endl;
-	}
-	else {																	// load characters into vector array
-		/*char c = ' ';
-		while (file.get(c)) {
-			charData.push_back(tolower(c));
-			charData_Key.push_back(mapChar(c));									// map char to face using key
-			cout << c;
-		}
-		cout << endl;
-
-		char* str = '\0';
-		ifile_1.getline(str, 10, ' ');
-	cout << "str: " << *str << endl;
-
-
-	}*/
 
 	Application *application = new Application();
 

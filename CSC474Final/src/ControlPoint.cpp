@@ -37,22 +37,22 @@ bool ControlPoint::loadPoints(string filename) {
 
 			if (c_line[0] != '\n' && c_line[0] != '\0') {
 					char * c = "\0";
-					
-					c = strtok(c_line, " \n");		// x	// X BASE
+
+					c = strtok(c_line, " \n");		// x	// X BASE - pos
 					pt[0].x = stof(string(c));
 					c = strtok(NULL, " \n");		// y
 					pt[0].y = stof(string(c));
 					c = strtok(NULL, " \n");		// z
 					pt[0].z = stof(string(c));
 
-					c = strtok(NULL, " \n");		// x	// Y BASE
+					c = strtok(NULL, " \n");		// x	// Y BASE - up
 					pt[1].x = stof(string(c));
 					c = strtok(NULL, " \n");		// y
 					pt[1].y = stof(string(c));
 					c = strtok(NULL, " \n");		// z
 					pt[1].z = stof(string(c));
 
-					c = strtok(NULL, " \n");		// x	// Z BASE
+					c = strtok(NULL, " \n");		// x	// Z BASE - dir
 					pt[2].x = stof(string(c));
 					c = strtok(NULL, " \n");		// y
 					pt[2].y = stof(string(c));
@@ -100,20 +100,20 @@ bool ControlPoint::clearPoints(string filename) {
 
 // is it to open the file every time they wanna add points?
 glm::mat3 ControlPoint::addPoint(vec3 pos, vec3 dir, vec3 up, string filename) {
-	
+
 	file.open(filename, ios::out | ios::app);	// ---------- open file | write | append
 	if (!file.is_open()) {
 		cout << "Warning: Could not open file - " << filename << endl;
 	}
 
-	mat3 pt = mat3(pos, dir, up);
+	mat3 pt = mat3(pos, up, dir);
 	points.push_back(pt);
 
 	// write mat to file
 	file << endl;
 	file << pos.x << " " << pos.y << " " << pos.z << " ";
-	file << dir.x << " " << dir.y << " " << dir.z << " ";
-	file << up.x << " " << up.y << " " << up.z << endl;
+	file << up.x << " " << up.y << " " << up.z << " ";
+	file << dir.x << " " << dir.y << " " << dir.z << endl;
 
 	file.close();
 
@@ -126,7 +126,7 @@ void ControlPoint::buildModelMat(float size) {
 	for (int i = 0; i < points.size(); i++) {
 		glm::mat4 S = scale(mat4(1.0), vec3(size));			// scale
 		mat4 transCP = translate(mat4(1.0), points[i][0]);	// translate
-		
+
 		mat4 M = transCP * S;								// model mat
 		modelMats.push_back(M);
 	}
@@ -143,4 +143,8 @@ glm::mat4 ControlPoint::getModelMat(int idx) {
 	}
 
 	return modelMats[idx];
+}
+
+int ControlPoint::getSize() {
+	return points.size();
 }

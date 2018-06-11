@@ -27,7 +27,7 @@ public:
 	glm::mat3 addPoint(glm::vec3 pos, glm::vec3 dir, glm::vec3 up, std::string filename);
 	void buildModelMat(float size);
 	glm::mat4 getModelMat(int idx);
-
+	int getSize();
 
 
 };
