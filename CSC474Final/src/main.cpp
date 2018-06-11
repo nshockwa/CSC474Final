@@ -51,7 +51,7 @@ public:
 	WindowManager *windowManager = nullptr;
     Camera *camera = nullptr;
 
-    std::shared_ptr<Shape> shape, dbone, dragon;
+    std::shared_ptr<Shape> shape, dbone, dragon, skull;
 	std::shared_ptr<Program> dboneShader, phongShader, prog, heightshader, skyprog, linesshader, pplane;
 
     double gametime = 0;
@@ -72,6 +72,7 @@ public:
 		vector<mat4> animMats;
 		int currentKeyframe = 0;
 		mat4 animmat[200];
+		mat4 animbones[200];
 		int animmatsize=0;
 		all_animations all_animation;
 
@@ -267,7 +268,7 @@ public:
         char filepath[1000];
 
         //texture 1
-        string str = resourceDirectory + "/sky.jpg";
+        string str = resourceDirectory + "/sky1.jpg";
         strcpy(filepath, str.c_str());
         unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
         glGenTextures(1, &TextureID);
@@ -383,14 +384,14 @@ public:
 			std::vector<glm::vec3> boneVertices;
 			std::vector<unsigned int> indexBuffer;
 			for (int ii = 0; ii < 200; ii++)
-					animmat[ii] = mat4(1);
+				animbones[ii]=animmat[ii] = mat4(1);
 			//readtobone(resourceDirectory + "/test.fbx", &all_animation, &root);
 			readtobone(resourceDirectory + "/CompleteRiggedDragonFly.fbx", &all_animation, &root);
 			readtobone(resourceDirectory + "/CompleteRiggedDragonRun.fbx", &all_animation, NULL);
 //        readtobone(&root, (resourceDirectory + "/test.fbx").c_str(), animations);
 //        readtobone(&root, (resourceDirectory + "/axisneurontestfile_binary.fbx").c_str());
 			root->write_to_VBOs(glm::vec3(0), boneVertices, indexBuffer);
-			root->set_animations(&all_animation,animmat,animmatsize);
+			root->set_animations(&all_animation,animmat, animbones,animmatsize);
 //        root->findAnimations(animations[0]);
 //        root->assignMatrix(&animMats);
 			boneCount = boneVertices.size();
@@ -421,10 +422,15 @@ public:
         shape->init();
 				initAnim(resourceDirectory);
 
-				dbone = make_shared<Shape>();
-				dbone->loadMesh(resourceDirectory + "/bone.obj");
-				dbone->resize();
-				dbone->init();
+				skull = make_shared<Shape>();
+				skull->loadMesh(resourceDirectory + "/demonskull.obj");
+				skull->resize();
+				skull->init();
+
+		dbone = make_shared<Shape>();
+		dbone->loadMesh(resourceDirectory + "/bone.obj");
+		dbone->resize();
+		dbone->init();
 		// load dragon.obj
 		dragon = make_shared<Shape>();
 		dragon->loadMesh(resourceDirectory + "/sphere.obj");
@@ -780,10 +786,6 @@ public:
 
 	static float inter = 0;
 
-	//root->play_animation(frame,"axisneurontestfile_Avatar00");
-
-	//root->play_animation(frame,"avatar_0_fbx_tmp");
-	//root->play_animation(frame,"Clip_Run_Cycle");
 	root->play_animation(frame, animationName, inter);
 	if (switchAnim && inter < 1)
 	{
@@ -797,11 +799,11 @@ public:
 	/**************/
 	/* DRAW SHAPE */
 	/**************/
-	S = glm::scale(glm::mat4(1), glm::vec3(0.1f));
+	S = glm::scale(glm::mat4(1), glm::vec3(1.0f));
 	glm::mat4	T = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0));
 	//angle = 180.0f;
 	//glm:: mat4 R = glm::rotate(glm::mat4(1), glm::radians(angle), glm::vec3(0,1,0));
-	M = T * TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points) * S ;
+	M = T * TranslateObjAlongPath(frametime / 2.0, path1_cardinal, Path1_CP->points) * S;//T *TranslateObjAlongPath(frametime / 2.0, path1_cardinal, Path1_CP->points) * S;
 	phongShader->bind();
 	phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
 //	glUniformMatrix4fv(phongShader->getUniform("Manim"), 200, GL_FALSE, &animmat[0][0][0]);
@@ -814,14 +816,24 @@ public:
 	phongShader->unbind();
 
 	dboneShader->bind();
-	//for (mat4 mat : animmat)
-	//{
-		M = T * TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points) * S ;
-		dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-		dbone->draw(dboneShader,false);
-	//}
+	for (int i=0;i<129;i++)
+	{
+		if (i==10)
+	  {
+			glm::mat4 R = glm::rotate(mat4(1),glm::radians(180.0f), glm::vec3(0,1,0))*  glm::rotate(mat4(1),glm::radians(90.0f), glm::vec3(0,0,1)),
+		 	M = TranslateObjAlongPath(frametime/258.0, path1_cardinal, Path1_CP->points) *animbones[10]*  R *  scale(mat4(1), vec3(0.6, 0.6, 0.6));
+		 	dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		 	skull ->draw(dboneShader,false);
+	  }
+		else
+		{
+			M = TranslateObjAlongPath(frametime/258.0, path1_cardinal, Path1_CP->points) *animbones[i]*  translate(mat4(1), vec3(0.5, 0, 0))*scale(mat4(1), vec3(0.4, 0.4, 0.4));
+			dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+			dbone->draw(dboneShader,false);
+		}
 	}
 
+};
 };
 
 int main(int argc, char **argv) {
