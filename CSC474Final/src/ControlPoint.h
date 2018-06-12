@@ -28,6 +28,7 @@ public:
 	void buildModelMat();
 	glm::mat4 getModelMat(int idx);
 	int getSize();
+	glm::mat3 goToLastPoint();
 
 
 };

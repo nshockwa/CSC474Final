@@ -164,3 +164,11 @@ glm::mat4 ControlPoint::getModelMat(int idx) {
 int ControlPoint::getSize() {
 	return points.size();
 }
+
+glm::mat3 ControlPoint::goToLastPoint() {
+	if (points.size() == 0) {
+		cout << "ControlPoint::goToLastPointError: index out of bound." <<endl;
+		return mat3(0.0);
+	}
+	return points[points.size()-1];
+}

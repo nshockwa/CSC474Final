@@ -90,7 +90,7 @@ public:
 
 	// toggle plane camera perspective
 	int cam_persp = 0;		// toggle camera perspective
-	int back_count = 0; // keep track of how many nodes I added
+	int pt_cnt = 0; // keep track of how many nodes I added
 
     Application() {
         camera = new Camera();
@@ -124,8 +124,8 @@ public:
 			vec3 dir, pos, up;
 			camera->getUpRotPos(up, dir, pos);
 			cout << endl;
-			back_count++;
-			cout << "backspace count: " << back_count << endl;
+			pt_cnt++;
+			cout << "point count: " << pt_cnt << endl;
 			cout << "point position:" << pos.x << "," << pos.y << "," << pos.z << endl;
 			cout << "Zbase:" << dir.x << "," << dir.y << "," << dir.z << endl;
 			cout << "Ybase:" << up.x << "," << up.y << "," << up.z << endl;
@@ -139,6 +139,12 @@ public:
 			cardinal_curve(path1_cardinal, path1, FRAMES, 1.0);
 			path1_render.re_init_line(path1_cardinal);
 
+		}
+		if (key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS) {
+			cout << "Going to last point" << endl;
+			mat3 newpt = Path1_CP->goToLastPoint();
+			camera->pos = newpt[0];
+			camera->setUpRotPos(newpt[1], newpt[2], (newpt[0] * -1.f));
 		}
 		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 			switchAnim = !switchAnim;
@@ -479,6 +485,7 @@ public:
 
 		// init control points -----------
 		Path1_CP->loadPoints(resourceDirectory + "/path1.txt");
+		pt_cnt = Path1_CP->points.size();
 
 	}
 
@@ -597,10 +604,9 @@ public:
 		glm::mat4 V, M, P;
         P = getPerspectiveMatrix();
         V = camera->getViewMatrix();
-		if (cam_persp) {
-			V = CamPathView(frametime);
-		}
-
+		// if (cam_persp) {
+		// 	V = CamPathView(frametime);
+		// }
         M = glm::mat4(1);
 
         /*************** DRAW SHAPE ***************
@@ -660,14 +666,15 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		mat4 RotateCP = rotate(mat4(1.0), radians(-180.0f), vec3(1, 0, 0));
-		mat4 ScaleCP = scale(mat4(1.0), vec3(0.5));
+		mat4 RotateCPX = rotate(mat4(1.0), radians(90.0f), vec3(1, 0, 0));
+		mat4 RotateCPY = rotate(mat4(1.0), radians(180.0f), vec3(0, 1, 0));
+		mat4 ScaleCP = scale(mat4(1.0), vec3(0.25));
 		int activate_red = 0;
-		float size =0.5, red = 0.0, green = 0.0;
+		float red = 0.0, green = 0.0;
 		//Path1_CP->buildModelMat();
 
 		for (int i = 0; i < Path1_CP->modelMats.size(); i++) {
-			M = Path1_CP->modelMats[i] *RotateCP * ScaleCP;
+			M = Path1_CP->modelMats[i] *RotateCPX * RotateCPY * ScaleCP;
 			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 			glUniform1f(prog->getUniform("red"), red);
 			glUniform1f(prog->getUniform("green"), green);
@@ -683,27 +690,6 @@ public:
 			}
 		}
 
-		activate_red = 0;
-		size = 0.1, red = 0.0, green = 0.0;
-		for (int i = 0; i < campath_controlpts.size(); i++) {
-			mat4 transCP = translate(mat4(1.0), (campath_controlpts[i][0]*-1.0f));
-			M = transCP * S;
-			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-			glUniform1f(prog->getUniform("red"), red);
-			glUniform1f(prog->getUniform("green"), green);
-			shape->draw(prog, false);
-
-			if (activate_red) {
-				red += 0.2;
-			}
-			else {
-				green += 0.2;
-			}
-			if (red >= 1.0 || green >= 1.0) {
-				activate_red = !activate_red;
-				red = 0.0; green = 0.0;
-			}
-		}
 
 		// Draw the Dragon -------------------------------------------------------------------
 		// pplane->bind();
