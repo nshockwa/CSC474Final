@@ -106,14 +106,15 @@ glm::mat3 ControlPoint::addPoint(vec3 pos, vec3 dir, vec3 up, string filename) {
 		cout << "Warning: Could not open file - " << filename << endl;
 	}
 
-	mat3 pt = mat3(pos, up, dir);
+	pos *= -1.0f; up *= -1.0f; dir *= -1.0f;				// control point is inverse of camera pos
+	mat3 pt = mat3(pos, dir, up);
 	points.push_back(pt);
 
 	// write mat to file
 	file << endl;
-	file << pos.x << " " << pos.y << " " << pos.z << " ";
-	file << up.x << " " << up.y << " " << up.z << " ";
-	file << dir.x << " " << dir.y << " " << dir.z << endl;
+	file << pos.x << " " << pos.y << " " << pos.z << " ";		// pos
+	file << dir.x << " " << dir.y << " " << dir.z << " ";		// dir
+	file << up.x << " " << up.y << " " << up.z << endl;			// up
 
 	file.close();
 
@@ -124,10 +125,25 @@ glm::mat3 ControlPoint::addPoint(vec3 pos, vec3 dir, vec3 up, string filename) {
 void ControlPoint::buildModelMat(float size) {
 
 	for (int i = 0; i < points.size(); i++) {
+
+		// get rotation
+		mat4 rotM = mat4(1.0);
+		vec3 ey = points[i][1];
+		vec3 ez = points[i][2];
+		vec3 ex = cross(ey, ez);
+		rotM[0][0] = ex.x;	rotM[1][0] = ey.x;	rotM[2][0] = ez.x;	rotM[3][0] = 0;
+		rotM[0][1] = ex.y;	rotM[1][1] = ey.y;	rotM[2][1] = ez.y;	rotM[3][1] = 0;
+		rotM[0][2] = ex.z;	rotM[1][2] = ey.z;	rotM[2][2] = ez.z;	rotM[3][2] = 0;
+		rotM[0][3] = 0;		rotM[1][3] = 0;		rotM[2][3] = 0;		rotM[3][3] = 1.0f;
+		quat q = quat(rotM);
+		q = normalize(q);
+		rotM = mat4(q);
+
 		glm::mat4 S = scale(mat4(1.0), vec3(size));			// scale
 		mat4 transCP = translate(mat4(1.0), points[i][0]);	// translate
 
-		mat4 M = transCP * S;								// model mat
+		mat4 M = transCP * rotM * S;								// model mat
+		//mat4 M = transCP * S;
 		modelMats.push_back(M);
 	}
 }

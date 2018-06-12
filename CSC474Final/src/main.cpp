@@ -138,22 +138,22 @@ public:
 
 			/* testing Path1_CP class */
 			Path1_CP->addPoint(pos, dir, up, resourceDir + "/path1.txt");
-			Path1_CP->points[Path1_CP->getSize() - 1][0] *= -1.0f;
+			//Path1_CP->points[Path1_CP->getSize() - 1] *= -1.0f;
 			path1.push_back(Path1_CP->points[Path1_CP->getSize() - 1][0]);
 			path1_render.re_init_line(path1);
 			cardinal_curve(path1_cardinal, path1, FRAMES, 1.0);
 			path1_render.re_init_line(path1_cardinal);
 
 		}
-					if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-						switchAnim = !switchAnim;
-					}
-					if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-						slowMo = !slowMo;
-					}
-					if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-						speedUp = !speedUp;
-					}
+		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+			switchAnim = !switchAnim;
+		}
+		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+			slowMo = !slowMo;
+		}
+		if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+			speedUp = !speedUp;
+		}
 
         // Polygon mode (wireframe vs solid)
         if (key == GLFW_KEY_P && action == GLFW_PRESS) {
@@ -374,7 +374,6 @@ public:
 		// new path renderer
 		path1_render.init();
 		for (int i = 0; i < Path1_CP->points.size(); i++) {
-			Path1_CP->points[i] *= -1.0f;
 			path1.push_back(Path1_CP->points[i][0]);
 			//	cout << path1_controlpts[i][0].x << " " << path1_controlpts[i][0].y << " " << path1_controlpts[i][0].z << endl;
 		}
@@ -549,12 +548,12 @@ public:
 		static float t = 0.0;								// t for interpoltation
 		t = (float)(frame % (FRAMES - 1)) / (float)(FRAMES - 1);
 
-		ez1 = ez2 = controlpts[frame / (FRAMES - 1)][1];				// ez1 - up
-		ey1 = ey2 = controlpts[frame / (FRAMES - 1)][2];				// ey1 - lookat
+		ez1 = ez2 = controlpts[frame / (FRAMES - 1)][2];				// ez1 - look at
+		ey1 = ey2 = controlpts[frame / (FRAMES - 1)][1];				// ey1 - up 
 
 		if ((frame / (FRAMES - 1)) + 1 < controlpts.size()) {		// check if the next control pt exists
-			ez2 = controlpts[(frame / (FRAMES - 1)) + 1][1];		// ez2 - up
-			ey2 = controlpts[(frame / (FRAMES - 1)) + 1][2];		// ey2 - lookat
+			ez2 = controlpts[(frame / (FRAMES - 1)) + 1][2];		// ez2 - look at
+			ey2 = controlpts[(frame / (FRAMES - 1)) + 1][1];		// ey2 - up
 		}
 		RotPlane1 = linint_between_two_orientations(ez1, ey1, ez2, ey2, t);
 		TransPlane1 = glm::translate(glm::mat4(1.0f), path[frame]);
@@ -666,15 +665,18 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
+		mat4 RotateCP = rotate(mat4(1.0), radians(-90.0f), vec3(1, 0, 0));
+
 		int activate_red = 0;
 		float size =0.3, red = 0.0, green = 0.0;
 		Path1_CP->buildModelMat(0.2);
+
 		for (int i = 0; i < Path1_CP->points.size(); i++) {
-			M = Path1_CP->getModelMat(i);
+			M = Path1_CP->getModelMat(i) * RotateCP;
 			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 			glUniform1f(prog->getUniform("red"), red);
 			glUniform1f(prog->getUniform("green"), green);
-			shape->draw(prog, false);
+			dragon->draw(prog, false);
 			if (activate_red) {
 				red += 0.2;
 			} else{
