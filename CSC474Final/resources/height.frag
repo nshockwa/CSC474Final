@@ -40,11 +40,11 @@ float spec = dot(frag_norm,h);
 spec=clamp(spec,0,1);
 
 float ambientlight = 0.05+light*0.95;
-color.rgb = ambientlight*vec3(0.718,0.7,0.97);
+color.rgb = ambientlight*vec3(0.0,0.0,0.0);
 
 color.a=1;//1-len;
 if(renderstate==2)
-	color=vec4(0,0,0,1);	
+	color=vec4(0,0,0,1);
 color.rgb = (color.rgb*0.8+ vec3(1,1,1)*spec*0.5)*(1-len) + bgcolor*len ;
 color.a=1;
 }

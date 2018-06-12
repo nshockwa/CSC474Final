@@ -133,7 +133,7 @@ public:
 			cout << endl;
 
 			Path1_CP->addPoint(pos, up, dir, resourceDir + "/path1.txt");
-			
+
 			path1.push_back(Path1_CP->points[Path1_CP->getSize() - 1][0]);		// add point to line
 			path1_render.re_init_line(path1);
 			cardinal_curve(path1_cardinal, path1, FRAMES, 1.0);
@@ -269,7 +269,7 @@ public:
         char filepath[1000];
 
         //texture 1
-        string str = resourceDirectory + "/sky1.jpg";
+        string str = resourceDirectory + "/litskybox.jpg";
         strcpy(filepath, str.c_str());
         unsigned char* data = stbi_load(filepath, &width, &height, &channels, 4);
         glGenTextures(1, &TextureID);
@@ -282,7 +282,7 @@ public:
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
         //texture 2
-        str = resourceDirectory + "/sky1.jpg";
+        str = resourceDirectory + "/litskybox.jpg";
         strcpy(filepath, str.c_str());
         data = stbi_load(filepath, &width, &height, &channels, 4);
         glGenTextures(1, &Texture2ID);
@@ -543,7 +543,7 @@ public:
 		static float t = 0.0;								// t for interpoltation
 		t = (float)(frame % (FRAMES - 1)) / (float)(FRAMES - 1);
 
-		ey1 = ey2 = controlpts[frame / (FRAMES - 1)][1];				// ey1 - up 
+		ey1 = ey2 = controlpts[frame / (FRAMES - 1)][1];				// ey1 - up
 		ez1 = ez2 = controlpts[frame / (FRAMES - 1)][2];				// ez1 - look at
 
 		if ((frame / (FRAMES - 1)) + 1 < controlpts.size()) {		// check if the next control pt exists
@@ -635,7 +635,7 @@ public:
 
         vec3 offset = camera->pos;
 			offset.y = 0; offset.x = (int)offset.x;	offset.z = (int)offset.z;
-        vec3 bg = vec3(254. / 255., 225. / 255., 168. / 255.);
+        vec3 bg = vec3(201. / 255., 81. / 255., 24. / 255.);
         if (renderstate == 2)
             bg = vec3(49. / 255., 88. / 255., 114. / 255.);
 
