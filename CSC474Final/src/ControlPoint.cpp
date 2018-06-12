@@ -73,14 +73,12 @@ bool ControlPoint::loadPoints(string filename) {
 		cout << endl;
 	}
 
+
+	// build model matrix for each point
+	buildModelMat();
+
 	file.close();			// ------- close file
 
-
-	/* TESTING */
-	cout << "printing out points" << endl;
-	for (int i = 0; i < points.size(); i++) {
-		cout << to_string(points[i]) << endl;
-	}
 	return true;
 
 }
@@ -99,22 +97,25 @@ bool ControlPoint::clearPoints(string filename) {
 }
 
 // is it to open the file every time they wanna add points?
-glm::mat3 ControlPoint::addPoint(vec3 pos, vec3 dir, vec3 up, string filename) {
+glm::mat3 ControlPoint::addPoint(vec3 pos, vec3 up, vec3 dir, string filename) {
 
 	file.open(filename, ios::out | ios::app);	// ---------- open file | write | append
 	if (!file.is_open()) {
 		cout << "Warning: Could not open file - " << filename << endl;
 	}
 
-	pos *= -1.0f; up *= -1.0f; dir *= -1.0f;				// control point is inverse of camera pos
-	mat3 pt = mat3(pos, dir, up);
+	pos *= -1.0f; //up *= -1.0f; dir *= -1.0f;				// control point is inverse of camera pos
+	mat3 pt = mat3(pos, up, dir);
 	points.push_back(pt);
 
 	// write mat to file
 	file << endl;
 	file << pos.x << " " << pos.y << " " << pos.z << " ";		// pos
-	file << dir.x << " " << dir.y << " " << dir.z << " ";		// dir
-	file << up.x << " " << up.y << " " << up.z << endl;			// up
+	file << up.x << " " << up.y << " " << up.z << " ";			// up
+	file << dir.x << " " << dir.y << " " << dir.z << endl;		// dir
+
+	// build model matrix for each point
+	buildModelMat();
 
 	file.close();
 
@@ -122,7 +123,7 @@ glm::mat3 ControlPoint::addPoint(vec3 pos, vec3 dir, vec3 up, string filename) {
 }
 
 // Fill array of model matrices
-void ControlPoint::buildModelMat(float size) {
+void ControlPoint::buildModelMat() {
 
 	for (int i = 0; i < points.size(); i++) {
 
@@ -138,15 +139,14 @@ void ControlPoint::buildModelMat(float size) {
 		quat q = quat(rotM);
 		q = normalize(q);
 		rotM = mat4(q);
-
-		glm::mat4 S = scale(mat4(1.0), vec3(size));			// scale
 		mat4 transCP = translate(mat4(1.0), points[i][0]);	// translate
 
-		mat4 M = transCP * rotM * S;								// model mat
-		//mat4 M = transCP * S;
+		mat4 M = transCP * rotM;								// model mat
 		modelMats.push_back(M);
 	}
 }
+
+// don't really need this method?
 glm::mat4 ControlPoint::getModelMat(int idx) {
 
 	if (modelMats.size() <= 0) {

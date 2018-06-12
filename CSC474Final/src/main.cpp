@@ -131,15 +131,10 @@ public:
 			cout << "Ybase:" << up.x << "," << up.y << "," << up.z << endl;
 			cout << "point saved into ofile!" << endl << endl;
 			cout << endl;
-			// ofile << "{{" << pos.x << "," << pos.y << "," << pos.z << "}," << endl;
-			// ofile << "{" << dir.x << "," << dir.y << "," << dir.z << "}," << endl;
-			// ofile << "{" << up.x << "," << up.y << "," << up.z << "}}," << endl;
-			// ofile << endl;
 
-			/* testing Path1_CP class */
-			Path1_CP->addPoint(pos, dir, up, resourceDir + "/path1.txt");
-			//Path1_CP->points[Path1_CP->getSize() - 1] *= -1.0f;
-			path1.push_back(Path1_CP->points[Path1_CP->getSize() - 1][0]);
+			Path1_CP->addPoint(pos, up, dir, resourceDir + "/path1.txt");
+			
+			path1.push_back(Path1_CP->points[Path1_CP->getSize() - 1][0]);		// add point to line
 			path1_render.re_init_line(path1);
 			cardinal_curve(path1_cardinal, path1, FRAMES, 1.0);
 			path1_render.re_init_line(path1_cardinal);
@@ -548,12 +543,12 @@ public:
 		static float t = 0.0;								// t for interpoltation
 		t = (float)(frame % (FRAMES - 1)) / (float)(FRAMES - 1);
 
-		ez1 = ez2 = controlpts[frame / (FRAMES - 1)][2];				// ez1 - look at
 		ey1 = ey2 = controlpts[frame / (FRAMES - 1)][1];				// ey1 - up 
+		ez1 = ez2 = controlpts[frame / (FRAMES - 1)][2];				// ez1 - look at
 
 		if ((frame / (FRAMES - 1)) + 1 < controlpts.size()) {		// check if the next control pt exists
-			ez2 = controlpts[(frame / (FRAMES - 1)) + 1][2];		// ez2 - look at
 			ey2 = controlpts[(frame / (FRAMES - 1)) + 1][1];		// ey2 - up
+			ez2 = controlpts[(frame / (FRAMES - 1)) + 1][2];		// ez2 - look at
 		}
 		RotPlane1 = linint_between_two_orientations(ez1, ey1, ez2, ey2, t);
 		TransPlane1 = glm::translate(glm::mat4(1.0f), path[frame]);
@@ -665,14 +660,14 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		mat4 RotateCP = rotate(mat4(1.0), radians(-90.0f), vec3(1, 0, 0));
-
+		mat4 RotateCP = rotate(mat4(1.0), radians(-180.0f), vec3(1, 0, 0));
+		mat4 ScaleCP = scale(mat4(1.0), vec3(0.5));
 		int activate_red = 0;
-		float size =0.3, red = 0.0, green = 0.0;
-		Path1_CP->buildModelMat(0.2);
+		float size =0.5, red = 0.0, green = 0.0;
+		//Path1_CP->buildModelMat();
 
-		for (int i = 0; i < Path1_CP->points.size(); i++) {
-			M = Path1_CP->getModelMat(i) * RotateCP;
+		for (int i = 0; i < Path1_CP->modelMats.size(); i++) {
+			M = Path1_CP->modelMats[i] *RotateCP * ScaleCP;
 			glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, &M[0][0]);
 			glUniform1f(prog->getUniform("red"), red);
 			glUniform1f(prog->getUniform("green"), green);
