@@ -10,7 +10,7 @@ class Camera {
 public:
     Camera() {}
     ~Camera() {}
-    
+
     void update();
     glm::mat4 getViewMatrix();
     void setRotation(glm::vec3 rot);
@@ -18,17 +18,18 @@ public:
     void lookAt(glm::vec3 pos); // Look at pos, maintaining current up vector
     void lookAt(glm::vec3 pos, glm::vec3 up); // Look at pos with specified up vector
     void getUpRotPos(glm::vec3 &up, glm::vec3 &rot, glm::vec3 &pos); // get vec3 for quat
-    
+    void setUpRotPos(glm::vec3 up, glm::vec3 dir, glm::vec3 pos);
+
     glm::vec3 pos = glm::vec3(0);
     glm::vec3 rot = glm::vec3(0);
-    
+
     glm::vec3 vel = glm::vec3(0); // Position velocity per frame (local to camera frame)
     glm::vec3 rotVel = glm::vec3(0); // Rotation velocity per frame (local to camera frame)
 
-    
+
 private:
     void setRotation(glm::mat4 rot); // Doesn't update rot
-    
+
     glm::vec3 lookVector = glm::vec3(0, 0, -1);
     glm::vec3 up = glm::vec3(0, 1, 0);
 };

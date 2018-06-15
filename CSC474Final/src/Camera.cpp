@@ -15,7 +15,7 @@ void Camera::update() {
     // Update rotation
     this->rot += rotVel;
     setRotation(this->rot);
-    
+
     // Update position
     glm::vec3 axisX = glm::normalize(glm::cross(up, -lookVector));
     glm::vec3 delta = glm::vec3(0);
@@ -35,7 +35,7 @@ glm::mat4 Camera::getViewMatrix() {
     rotMat[2] = glm::vec4(axisZ, 0);
     rotMat[3] = glm::vec4(0, 0, 0, 1);
     rotMat = glm::transpose(rotMat);
-    
+
     // Translate the camera, preserving rotation
     glm::mat4 V = glm::translate(rotMat, pos);
     return V;
@@ -78,3 +78,8 @@ void Camera::getUpRotPos(glm::vec3 &up, glm::vec3 &dir, glm::vec3 &pos) {
         pos = this->pos;
 }
 
+void Camera::setUpRotPos(glm::vec3 up, glm::vec3 dir, glm::vec3 pos) {
+        this->up = up;
+        this->lookVector = dir;
+        this->pos = pos;
+}
