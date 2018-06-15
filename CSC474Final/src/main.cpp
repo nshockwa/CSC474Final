@@ -36,6 +36,7 @@ string resourceDir = "../resources/";
 int renderstate = 1;
 int realspeed = 0;
 ControlPoint *Path1_CP = nullptr;
+ControlPoint *CamPath_CP = nullptr;
 
 
 double get_last_elapsed_time() {
@@ -58,9 +59,9 @@ public:
     bool wireframeEnabled = false;
     bool mousePressed = false;
     bool mouseCaptured = false;
-		bool switchAnim = false;
-		bool slowMo = false;
-		bool speedUp = false;
+	bool switchAnim = false;
+	bool slowMo = false;
+	bool speedUp = false;
     glm::vec2 mouseMoveOrigin = glm::vec2(0);
     glm::vec3 mouseMoveInitialCameraRot;
 
@@ -348,23 +349,23 @@ public:
 	void initPaths(const std::string& resourceDirectory) {
 
 		//--------- FIX THIS --------------------
-		//// campath
-		//campath_render.init();
-		//for (int i = 0; i < campath_controlpts.size(); i++) {
-		//	campath.push_back(campath_controlpts[i][0]);
-		//	campath_inverse.push_back(campath_controlpts[i][0] * -1.0f);
-		//	//cout << "campath: " << campath_controlpts[i][0].x << " " << campath_controlpts[i][0].y << " " << campath_controlpts[i][0].z << endl;
-		//}
-		//campath_render.re_init_line(campath);
-		//cardinal_curve(camcardinal, campath, FRAMES, 1.0);
-		//campath_render.re_init_line(camcardinal);
-		//cout << "cam path has: " << campath.size() << " points" << endl;
+		// campath
+		campath_render.init();
+		for (int i = 0; i < CamPath_CP->points.size(); i++) {
+			campath.push_back(CamPath_CP->points[i][0]);
+			//campath_inverse.push_back(campath_controlpts[i][0] * -1.0f);
+			//cout << "campath: " << campath_controlpts[i][0].x << " " << campath_controlpts[i][0].y << " " << campath_controlpts[i][0].z << endl;
+		}
+		campath_render.re_init_line(campath);
+		cardinal_curve(camcardinal, campath, FRAMES, 1.0);
+		campath_render.re_init_line(camcardinal);
+		cout << "cam path has: " << campath.size() << " points" << endl;
 
-		//// campath - inverse (drawing purposes)
-		//campath_inverse_render.init();
-		//campath_inverse_render.re_init_line(campath_inverse);
-		//cardinal_curve(camcardinal_inverse, campath_inverse, FRAMES, 1.0);
-		//campath_inverse_render.re_init_line(camcardinal_inverse);
+		// campath - inverse (drawing purposes)
+		/*campath_inverse_render.init();
+		campath_inverse_render.re_init_line(campath_inverse);
+		cardinal_curve(camcardinal_inverse, campath_inverse, FRAMES, 1.0);
+		campath_inverse_render.re_init_line(camcardinal_inverse);*/
 
 		// new path renderer
 		path1_render.init();
@@ -477,8 +478,12 @@ public:
         pplane->setShaderNames(resourceDirectory + "/plane.vert", resourceDirectory + "/plane.frag");
         pplane->init();
 
-		// init control points -----------
+		// Initialize Control Points
+		Path1_CP = new ControlPoint();
 		Path1_CP->loadPoints(resourceDirectory + "/path1.txt");
+
+		CamPath_CP = new ControlPoint();
+		CamPath_CP->loadPoints(resourceDirectory + "/campath.txt");
 
 	}
 
@@ -844,8 +849,6 @@ int main(int argc, char **argv) {
 	if (argc >= 2)
 		resourceDir = argv[1];
 
-	// Initialize Control Points
-	Path1_CP = new ControlPoint();
 
 	Application *application = new Application();
 
