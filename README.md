@@ -49,3 +49,10 @@ Dreams-VR
   - git branch -d the_local_branch
 - delete remote branch
   - safely do it on site
+
+### Merge Conflicts
+- In the process of merging but there are conflicts
+  - make changes to files with conflicts
+- git add .
+- git commit -m "..."
+- git pull origin master

@@ -35,8 +35,6 @@ string resourceDir = "../resources/";
 //ifstream ifile_1;
 int renderstate = 1;
 int realspeed = 0;
-ControlPoint *Path1_CP = nullptr;
-ControlPoint *CamPath_CP = nullptr;
 
 
 double get_last_elapsed_time() {
@@ -85,12 +83,11 @@ public:
    	// paths
 	Line path1_render, campath_render, campath_inverse_render;
 	vector<vec3> path1, campath, campath_inverse, path1_cardinal, camcardinal, camcardinal_inverse;
-
-	// pos, lookat, up - data
-	vector<mat3> path1_controlpts, campath_controlpts;
+	ControlPoint *Path1_CP = nullptr;
+	ControlPoint *CamPath_CP = nullptr;
 
 	// toggle plane camera perspective
-	int cam_persp = 0;		// toggle camera perspective
+	int cam_persp = 1;		// toggle camera perspective
 	int pt_cnt = 0; // keep track of how many nodes I added
 
     Application() {
@@ -168,9 +165,9 @@ public:
             glfwSetInputMode(window, GLFW_CURSOR, mouseCaptured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
             resetMouseMoveInitialValues(window);
         }
-        if (key == GLFW_KEY_TAB && action == GLFW_RELEASE)
-		{
+        if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
 			cam_persp = !cam_persp;
+			cout << "Camera Perspective Changed." << endl;
 		}
 	}
 
@@ -361,17 +358,12 @@ public:
 			campath.push_back(CamPath_CP->points[i][0]);
 			//campath_inverse.push_back(campath_controlpts[i][0] * -1.0f);
 			//cout << "campath: " << campath_controlpts[i][0].x << " " << campath_controlpts[i][0].y << " " << campath_controlpts[i][0].z << endl;
+			cout << "init path points" << endl;
 		}
 		campath_render.re_init_line(campath);
 		cardinal_curve(camcardinal, campath, FRAMES, 1.0);
 		campath_render.re_init_line(camcardinal);
 		cout << "cam path has: " << campath.size() << " points" << endl;
-
-		// campath - inverse (drawing purposes)
-		/*campath_inverse_render.init();
-		campath_inverse_render.re_init_line(campath_inverse);
-		cardinal_curve(camcardinal_inverse, campath_inverse, FRAMES, 1.0);
-		campath_inverse_render.re_init_line(camcardinal_inverse);*/
 
 		// new path renderer
 		path1_render.init();
@@ -422,17 +414,16 @@ public:
 		init_terrain_mesh();
 
 		// load sphere.obj
-
         shape = make_shared<Shape>();
         shape->loadMesh(resourceDirectory + "/sphere.obj");
         shape->resize();
         shape->init();
-				initAnim(resourceDirectory);
+		initAnim(resourceDirectory);
 
-				skull = make_shared<Shape>();
-				skull->loadMesh(resourceDirectory + "/demonskull.obj");
-				skull->resize();
-				skull->init();
+		skull = make_shared<Shape>();
+		skull->loadMesh(resourceDirectory + "/demonskull.obj");
+		skull->resize();
+		skull->init();
 
 		dbone = make_shared<Shape>();
 		dbone->loadMesh(resourceDirectory + "/bone.obj");
@@ -460,7 +451,7 @@ public:
         phongShader->setShaderNames(resourceDirectory + "/shader_vertex.glsl", resourceDirectory + "/shader_fragment.glsl");
         phongShader->init();
 
-				dboneShader = std::make_shared<Program>();
+		dboneShader = std::make_shared<Program>();
         dboneShader->setShaderNames(resourceDirectory + "/dbone.vert", resourceDirectory + "/dbone.frag");
         dboneShader->init();
 
@@ -470,7 +461,7 @@ public:
 
         prog = std::make_shared<Program>();
         prog->setShaderNames(resourceDirectory + "/shader.vert", resourceDirectory + "/shader.frag");
-				prog->init();
+		prog->init();
 
         heightshader = std::make_shared<Program>();
         heightshader->setShaderNames(resourceDirectory + "/height.vert", resourceDirectory + "/height.frag", resourceDirectory + "/height.geom");
@@ -568,34 +559,34 @@ public:
 		return TransPlane1 * RotPlane1;
 	}
 
-	mat4 CamPathView(float frametime) {
-		// Translate Plane Along Path
-		static float sumft = 0; // sum of frame times
-		sumft += frametime;
-		float f = sumft * FRAMES;
-		int frame = f;
-		if (frame >= camcardinal.size() - 1) {								// loop through path
-			sumft = 0;
-			frame = 0;
-		}
+	//mat4 CamPathView(float frametime) {
+	//	// Translate Plane Along Path
+	//	static float sumft = 0; // sum of frame times
+	//	sumft += frametime;
+	//	float f = sumft * FRAMES;
+	//	int frame = f;
+	//	if (frame >= camcardinal.size() - 1) {								// loop through path
+	//		sumft = 0;
+	//		frame = 0;
+	//	}
 
-		camera->pos = camcardinal[frame];
+	//	camera->pos = camcardinal[frame];
 
-		float t = 0.0;
-		t = (float)(frame % (FRAMES - 1)) / (float)(FRAMES - 1);
-		vec3 ez1, ey1, ez2, ey2;
-		ez1 = ez2 = campath_controlpts[frame / (FRAMES - 1)][1];				// ez1 - up
-		ey1 = ey2 = campath_controlpts[frame / (FRAMES - 1)][2];				// ey1 - lookat
+	//	float t = 0.0;
+	//	t = (float)(frame % (FRAMES - 1)) / (float)(FRAMES - 1);
+	//	vec3 ez1, ey1, ez2, ey2;
+	//	ez1 = ez2 = campath_controlpts[frame / (FRAMES - 1)][1];				// ez1 - up
+	//	ey1 = ey2 = campath_controlpts[frame / (FRAMES - 1)][2];				// ey1 - lookat
 
-		if ((frame / (FRAMES - 1)) + 1 < campath_controlpts.size()) {		// check if the next control pt exists
-			ez2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][1];		// ez2 - up
-			ey2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][2];		// ey2 - lookat
-		}
+	//	if ((frame / (FRAMES - 1)) + 1 < campath_controlpts.size()) {		// check if the next control pt exists
+	//		ez2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][1];		// ez2 - up
+	//		ey2 = campath_controlpts[(frame / (FRAMES - 1)) + 1][2];		// ey2 - lookat
+	//	}
 
-		mat4 RotPlane = linint_between_two_orientations(ez1, ey1, ez2, ey2, t);
-		mat4 TransPlane = glm::translate(mat4(1.0), camcardinal[frame]);
-		return transpose(RotPlane) * TransPlane;
-	}
+	//	mat4 RotPlane = linint_between_two_orientations(ez1, ey1, ez2, ey2, t);
+	//	mat4 TransPlane = glm::translate(mat4(1.0), camcardinal[frame]);
+	//	return transpose(RotPlane) * TransPlane;
+	//}
 
 	void render() {
 		double frametime = get_last_elapsed_time();
@@ -609,18 +600,12 @@ public:
 		glm::mat4 V, M, P;
         P = getPerspectiveMatrix();
         V = camera->getViewMatrix();
-		// if (cam_persp) {
-		// 	V = CamPathView(frametime);
-		// }
+		if (cam_persp) {
+		 	//V = CamPathView(frametime);
+			 V = TranslateObjAlongPath(frametime, camcardinal, CamPath_CP->points);
+			 cout << "using perspective cam" << endl;
+		}
         M = glm::mat4(1);
-
-        /*************** DRAW SHAPE ***************
-        M = glm::translate(glm::mat4(1), glm::vec3(0, 0, -3));
-        phongShader->bind();
-        phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-        shape->draw(phongShader, false);
-        phongShader->unbind();
-        */
 
         /************* draw sky sphere ******************/
 		static float w = 0.6;
@@ -695,37 +680,14 @@ public:
 			}
 		}
 
-
-		// Draw the Dragon -------------------------------------------------------------------
-		// pplane->bind();
-		//
-		// glUniformMatrix4fv(pplane->getUniform("P"), 1, GL_FALSE, &P[0][0]);				// send constant attributes to shaders
-		// glUniformMatrix4fv(pplane->getUniform("V"), 1, GL_FALSE, &V[0][0]);
-		// glUniform3fv(pplane->getUniform("campos"), 1, &camera->pos[0]);
-		// glActiveTexture(GL_TEXTURE0);
-		// glBindTexture(GL_TEXTURE_2D, Texture2ID);
-		//
-		// // initalize transformation of dragon
-		// glm::mat4 T = glm::translate(glm::mat4(1.0f), vec3(0, 0, -3));
-		// glm::mat4 ScalePlane = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));
-		// float sangle = -3.1415926 / 2.;
-		// glm::mat4 RotateXPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(1, 0, 0));
-		// sangle = 3.1415926;
-		// glm::mat4 RotateZPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(0, 0, 1));
-		// glm::mat4 RotateYPlane = glm::rotate(glm::mat4(1.0f), sangle, vec3(0, 1, 0));
-		//
-		// M =  T * TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points)* RotateZPlane;
-		// glUniformMatrix4fv(pplane->getUniform("M"), 1, GL_FALSE, &M[0][0]);
-		// dragon->draw(pplane, false);
-		// pplane->unbind();
-
 		// Draw the line path --------------------------------------------------------------
 
 		glm::vec3 linecolor = glm::vec3(1, 0, 0);
 		path1_render.draw(P, V, linecolor);
 
 		linecolor = glm::vec3(0, 0, 0);
-		campath_inverse_render.draw(P, V, linecolor);
+		//campath_inverse_render.draw(P, V, linecolor);
+		campath_render.draw(P, V, linecolor);
 
 
 		//anim ish *******************************************************
@@ -735,98 +697,95 @@ public:
 		totaltime_untilframe_ms += frametime*1000.0;
 
 		P = getPerspectiveMatrix();
-	V = camera->getViewMatrix();
-	M = glm::mat4(1);
+		V = camera->getViewMatrix();
+		M = glm::mat4(1);
 
-	// Setup Animation
-	string animationName = "";
-	int animIdx = 0;
-	if (!switchAnim)
-	{
-		animationName = "ArmatureAction";
-		animIdx = 0;
-	}
-	else
-	{
-		animationName = "ArmatureAction2";
-		animIdx = 1;
-	}
-	for (int ii = 0; ii < 200; ii++)
-			animmat[ii] = mat4(1);
-	long long animationDuration = root->getDuration("ArmatureAction");
-	int keyFrameCount = root->getKeyFrameCount("ArmatureAction");
-	int anim_step_width_ms = animationDuration / keyFrameCount;
-	static float frame = 0;
-	//static float fframe = 0;
-	if (totaltime_untilframe_ms >= anim_step_width_ms)
-	{
-			totaltime_untilframe_ms = 0;
-			if (slowMo)
-			{
-				frame += 0.1f;
-			}
-			else if (speedUp)
-			{
-				frame+=3;
-			}
-			else
-			{
-				frame++;
-			}
-	}
-	if (frame >= 24)
-	{
-		frame = 0;
-	}
-
-	static float inter = 0;
-
-	root->play_animation(frame, animationName, inter);
-	if (switchAnim && inter < 1)
-	{
-		inter += frametime;
-	}
-	else if (!switchAnim && inter > 0)
-	{
-		inter -= frametime;
-	}
-
-	/**************/
-	/* DRAW SHAPE */
-	/**************/
-	S = glm::scale(glm::mat4(1), glm::vec3(1.0f));
-	glm::mat4	T = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0));
-	glm::mat4 pathMB = TranslateObjAlongPath(frametime/258.0, path1_cardinal, Path1_CP->points); //bones
-	glm::mat4 pathML = TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points); // lines
-	M = pathML * S;
-	phongShader->bind();
-	phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-	phongShader->setMatrixArray("Manim", 200, &animmat[0][0][0]);
-
-
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_LINES, 0, boneCount-4);
-	phongShader->unbind();
-
-	dboneShader->bind();
-	for (int i=0;i<129;i++)
-	{
-		if (i==10)
-	  {
-			glm::mat4 R = glm::rotate(mat4(1),glm::radians(180.0f), glm::vec3(0,1,0))*  glm::rotate(mat4(1),glm::radians(90.0f), glm::vec3(0,0,1));
-		 	M =  pathMB * animbones[10]*  R *  scale(mat4(1), vec3(0.6, 0.6, 0.6));
-		 	dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-		 	skull ->draw(dboneShader,false);
-	  }
+		// Setup Animation
+		string animationName = "";
+		int animIdx = 0;
+		if (!switchAnim)
+		{
+			animationName = "ArmatureAction";
+			animIdx = 0;
+		}
 		else
 		{
-			M = pathMB * animbones[i]*  translate(mat4(1), vec3(0.5, 0, 0))*scale(mat4(1), vec3(0.4, 0.4, 0.4));
-			dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
-			dbone->draw(dboneShader,false);
+			animationName = "ArmatureAction2";
+			animIdx = 1;
 		}
-	}
+		for (int ii = 0; ii < 200; ii++)
+				animmat[ii] = mat4(1);
+		long long animationDuration = root->getDuration("ArmatureAction");
+		int keyFrameCount = root->getKeyFrameCount("ArmatureAction");
+		int anim_step_width_ms = animationDuration / keyFrameCount;
+		static float frame = 0;
+		//static float fframe = 0;
+		if (totaltime_untilframe_ms >= anim_step_width_ms)
+		{
+				totaltime_untilframe_ms = 0;
+				if (slowMo)
+				{
+					frame += 0.1f;
+				}
+				else if (speedUp)
+				{
+					frame+=3;
+				}
+				else
+				{
+					frame++;
+				}
+		}
+		if (frame >= 24)
+		{
+			frame = 0;
+		}
 
-};
+		static float inter = 0;
+
+		root->play_animation(frame, animationName, inter);
+		if (switchAnim && inter < 1)
+		{
+			inter += frametime;
+		}
+		else if (!switchAnim && inter > 0)
+		{
+			inter -= frametime;
+		}
+
+		/* DRAW SHAPE */
+		S = glm::scale(glm::mat4(1), glm::vec3(1.0f));
+		glm::mat4	T = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0));
+		glm::mat4 pathMB = TranslateObjAlongPath(frametime/258.0, path1_cardinal, Path1_CP->points); //bones
+		glm::mat4 pathML = TranslateObjAlongPath(frametime/2.0, path1_cardinal, Path1_CP->points); // lines
+		M = pathML * S;
+		phongShader->bind();
+		phongShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		phongShader->setMatrixArray("Manim", 200, &animmat[0][0][0]);
+
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_LINES, 0, boneCount-4);
+		phongShader->unbind();
+
+		dboneShader->bind();
+		for (int i=0;i<129;i++)
+		{
+			if (i==10)
+		  {
+				glm::mat4 R = glm::rotate(mat4(1),glm::radians(180.0f), glm::vec3(0,1,0))*  glm::rotate(mat4(1),glm::radians(90.0f), glm::vec3(0,0,1));
+		 		M =  pathMB * animbones[10]*  R *  scale(mat4(1), vec3(0.6, 0.6, 0.6));
+		 		dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+		 		skull ->draw(dboneShader,false);
+		  }
+			else
+			{
+				M = pathMB * animbones[i]*  translate(mat4(1), vec3(0.5, 0, 0))*scale(mat4(1), vec3(0.4, 0.4, 0.4));
+				dboneShader->setMVP(&M[0][0], &V[0][0], &P[0][0]);
+				dbone->draw(dboneShader,false);
+			}
+		}
+
+	};
 };
 
 int main(int argc, char **argv) {
